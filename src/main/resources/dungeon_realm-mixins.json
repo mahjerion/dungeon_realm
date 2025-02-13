@@ -1,0 +1,13 @@
+{
+  "minVersion": "0.8",
+  "required": true,
+  "package": "com.robertx22.dungeon_realm.mixins",
+  "compatibilityLevel": "JAVA_8",
+  "refmap": "dungeon_realm.refmap.json",
+  "mixins": [
+    
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

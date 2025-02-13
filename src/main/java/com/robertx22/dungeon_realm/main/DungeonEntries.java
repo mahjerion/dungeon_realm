@@ -1,0 +1,56 @@
+package com.robertx22.dungeon_realm.main;
+
+import com.robertx22.dungeon_realm.block.CustomSpawnTpBlock;
+import com.robertx22.dungeon_realm.block.MapDeviceBlock;
+import com.robertx22.dungeon_realm.block.UberBossAltarBlock;
+import com.robertx22.dungeon_realm.block_entity.MapDeviceBE;
+import com.robertx22.dungeon_realm.item.ObeliskMapItem;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.registries.DeferredRegister;
+import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraftforge.registries.RegistryObject;
+
+public class DungeonEntries {
+    // registars
+    public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, DungeonMain.MODID);
+    public static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, DungeonMain.MODID);
+    public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(ForgeRegistries.BLOCK_ENTITY_TYPES, DungeonMain.MODID);
+    public static final DeferredRegister<CreativeModeTab> CREATIVE_TAB = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, DungeonMain.MODID);
+
+    // blocks
+    public static RegistryObject<MapDeviceBlock> MAP_DEVICE_BLOCK = BLOCKS.register("map_device", () -> new MapDeviceBlock());
+    public static RegistryObject<CustomSpawnTpBlock> UBER_TELEPORT = BLOCKS.register("uber_teleport", () -> new CustomSpawnTpBlock(() -> DungeonMain.UBER_ARENA));
+    public static RegistryObject<CustomSpawnTpBlock> BOSS_TELEPORT = BLOCKS.register("boss_teleport", () -> new CustomSpawnTpBlock(() -> DungeonMain.ARENA));
+    public static RegistryObject<CustomSpawnTpBlock> REWARD_TELEPORT = BLOCKS.register("reward_teleport", () -> new CustomSpawnTpBlock(() -> DungeonMain.REWARD_ROOM));
+    public static RegistryObject<UberBossAltarBlock> UBER_ALTAR = BLOCKS.register("uber_boss_altar", () -> new UberBossAltarBlock());
+
+    // block entities
+    public static RegistryObject<BlockEntityType<MapDeviceBE>> MAP_DEVICE_BE = BLOCK_ENTITIES.register("map_device", () -> BlockEntityType.Builder.of(MapDeviceBE::new, MAP_DEVICE_BLOCK.get()).build(null));
+
+
+    // items
+    public static RegistryObject<BlockItem> MAP_DEVICE_ITEM = ITEMS.register("map_device", () -> new BlockItem(MAP_DEVICE_BLOCK.get(), new Item.Properties().stacksTo(64)));
+    public static RegistryObject<ObeliskMapItem> DUNGEON_MAP_ITEM = ITEMS.register("dungeon_map", () -> new ObeliskMapItem());
+    public static RegistryObject<Item> UBER_FRAGMENT = ITEMS.register("uber_fragment", () -> new Item(new Item.Properties().stacksTo(64)));
+    // public static RegistryObject<HomeItem> HOME_TP_BACK = ITEMS.register("home", () -> new HomeItem());
+
+
+    public static void initDeferred() {
+        final IEventBus bus = FMLJavaModLoadingContext.get().getModEventBus();
+        ITEMS.register(bus);
+        CREATIVE_TAB.register(bus);
+        BLOCKS.register(bus);
+        BLOCK_ENTITIES.register(bus);
+    }
+
+    public static void init() {
+
+    }
+}
