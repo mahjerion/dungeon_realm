@@ -11,7 +11,6 @@ import java.util.function.BiConsumer;
 
 public class DungeonLootTables {
 
-    //  public static ResourceLocation LOOT = DungeonMain.id("obelisk_loot");
     public static final ResourceLocation TIER_1_DUNGEON_CHEST = new ResourceLocation(DungeonMain.MODID, "chests/tier_1_dungeon");
     public static final ResourceLocation TIER_2_DUNGEON_CHEST = new ResourceLocation(DungeonMain.MODID, "chests/tier_2_dungeon");
     public static final ResourceLocation TIER_3_DUNGEON_CHEST = new ResourceLocation(DungeonMain.MODID, "chests/tier_3_dungeon");
@@ -33,7 +32,7 @@ public class DungeonLootTables {
         );
     }
 
-    public static class ObeliskLootTableProvider implements LootTableSubProvider {
+    public static class DungeonLootTableProvider implements LootTableSubProvider {
 
         @Override
         public void generate(BiConsumer<ResourceLocation, LootTable.Builder> output) {

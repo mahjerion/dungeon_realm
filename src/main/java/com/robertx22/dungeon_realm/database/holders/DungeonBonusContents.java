@@ -1,8 +1,8 @@
 package com.robertx22.dungeon_realm.database.holders;
 
 import com.robertx22.dungeon_realm.main.DungeonEntries;
+import com.robertx22.dungeon_realm.main.DungeonMain;
 import com.robertx22.library_of_exile.database.extra_map_content.MapContent;
-import com.robertx22.library_of_exile.main.Ref;
 import com.robertx22.library_of_exile.registry.helpers.ExileKey;
 import com.robertx22.library_of_exile.registry.helpers.ExileKeyHolder;
 import com.robertx22.library_of_exile.registry.helpers.KeyInfo;
@@ -10,7 +10,7 @@ import com.robertx22.library_of_exile.registry.register_info.ModRequiredRegister
 
 public class DungeonBonusContents extends ExileKeyHolder<MapContent> {
 
-    public static DungeonBonusContents INSTANCE = new DungeonBonusContents(Ref.REGISTER_INFO);
+    public static DungeonBonusContents INSTANCE = new DungeonBonusContents(DungeonMain.REGISTER_INFO);
 
     public DungeonBonusContents(ModRequiredRegisterInfo info) {
         super(info);

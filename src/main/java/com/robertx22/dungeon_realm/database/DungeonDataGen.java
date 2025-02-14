@@ -7,10 +7,13 @@ import com.robertx22.library_of_exile.localization.ExileLangFile;
 import com.robertx22.library_of_exile.localization.ExileTranslation;
 import com.robertx22.library_of_exile.localization.ITranslated;
 import com.robertx22.library_of_exile.localization.TranslationBuilder;
+import com.robertx22.library_of_exile.recipe.RecipeGenerator;
 import com.robertx22.library_of_exile.registry.ExileRegistryType;
+import com.robertx22.orbs_of_crafting.misc.ShapedRecipeUTIL;
 import net.minecraft.ChatFormatting;
 import net.minecraft.data.CachedOutput;
 import net.minecraft.data.DataProvider;
+import net.minecraft.world.item.Items;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -25,6 +28,14 @@ public class DungeonDataGen implements DataProvider {
 
     @Override
     public CompletableFuture<?> run(CachedOutput pOutput) {
+
+        RecipeGenerator.addRecipe(DungeonMain.MODID, () -> ShapedRecipeUTIL.of(DungeonEntries.HOME_TP_BACK.get(), 16)
+                .define('Y', Items.IRON_INGOT)
+                .define('X', Items.GOLD_INGOT)
+                .pattern(" X ")
+                .pattern("YYY")
+                .pattern("YYY"));
+
         List<ITranslated> tra = new ArrayList<>();
         tra.addAll(Arrays.stream(DungeonWords.values()).toList());
         for (ITranslated t : tra) {
@@ -33,28 +44,27 @@ public class DungeonDataGen implements DataProvider {
         TranslationBuilder.of(DungeonMain.MODID).name(ExileTranslation.item(DungeonEntries.DUNGEON_MAP_ITEM.get(), ChatFormatting.DARK_PURPLE + "Dungeon Map")).build();
         TranslationBuilder.of(DungeonMain.MODID).name(ExileTranslation.item(DungeonEntries.MAP_DEVICE_ITEM.get(), "Map Device")).build();
         TranslationBuilder.of(DungeonMain.MODID).name(ExileTranslation.item(DungeonEntries.UBER_FRAGMENT.get(), "Uber Fragment")).build();
+        TranslationBuilder.of(DungeonMain.MODID).name(ExileTranslation.item(DungeonEntries.HOME_TP_BACK.get(), "Home Pearl")).build();
+        TranslationBuilder.of(DungeonMain.MODID).name(ExileTranslation.item(DungeonEntries.RELIC_ITEM.get(), ChatFormatting.GOLD + "Dungeon Relic")).build();
+        TranslationBuilder.of(DungeonMain.MODID).name(ExileTranslation.item(DungeonEntries.RELIC_KEY.get(), "Relic Key")).build();
 
         TranslationBuilder.of(DungeonMain.MODID).name(ExileTranslation.block(DungeonEntries.MAP_DEVICE_BLOCK.get(), "Map Device")).build();
 
         ExileLangFile.createFile(DungeonMain.MODID, "");
 
-        // todo  new RecipeGenerator().generateAll(pOutput, Obe.MODID);
 
         for (ExileRegistryType type : ExileRegistryType.getAllInRegisterOrder()) {
             type.getDatapackGenerator().run(pOutput);
         }
 
-        // RecipeGenerator.generateAll(pOutput, DungeonMain.MODID);
+        RecipeGenerator.generateAll(CachedOutput.NO_CACHE, DungeonMain.MODID);
 
-        //DataProvider.saveStable(pOutput, x.serializeRecipe(), target);
-
-        return CompletableFuture.completedFuture(null); // todo this is bad, but would it work?
-        // i think this is only needed if you dont directly save the jsons yourself?
+        return CompletableFuture.completedFuture(null);
     }
 
 
     @Override
     public String getName() {
-        return "obelisk_data";
+        return "dungeon_data";
     }
 }

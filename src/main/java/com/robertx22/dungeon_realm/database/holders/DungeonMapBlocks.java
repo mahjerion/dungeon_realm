@@ -9,6 +9,7 @@ import com.robertx22.dungeon_realm.main.DungeonEntries;
 import com.robertx22.dungeon_realm.main.DungeonMain;
 import com.robertx22.library_of_exile.database.map_data_block.MapDataBlock;
 import com.robertx22.library_of_exile.database.map_data_block.all.SetBlockMB;
+import com.robertx22.library_of_exile.main.ExileLibEntries;
 import com.robertx22.library_of_exile.registry.helpers.ExileKey;
 import com.robertx22.library_of_exile.registry.helpers.ExileKeyHolder;
 import com.robertx22.library_of_exile.registry.helpers.KeyInfo;
@@ -32,7 +33,7 @@ public class DungeonMapBlocks extends ExileKeyHolder<MapDataBlock> {
     public ExileKey<MapDataBlock, KeyInfo> ELITE_MOB_HORDE = ExileKey.ofId(this, "elite_mob_horde", x -> new EliteMobHordeMB(x.GUID()));
     public ExileKey<MapDataBlock, KeyInfo> BOSS = ExileKey.ofId(this, "boss", x -> new BossMB(x.GUID()));
     public ExileKey<MapDataBlock, KeyInfo> MAP_BOSS = ExileKey.ofId(this, "map_boss", x -> new MapBossMB(x.GUID()));
-    public ExileKey<MapDataBlock, KeyInfo> MAP_TELEPORTER = ExileKey.ofId(this, "map_teleporter", x -> new SetBlockMB(x.GUID(), DungeonEntries.MAP_DEVICE_BLOCK.getId().toString()));
+    public ExileKey<MapDataBlock, KeyInfo> MAP_TELEPORTER = ExileKey.ofId(this, "map_teleporter", x -> new SetBlockMB(x.GUID(), ExileLibEntries.TELEPORT_BACK_BLOCK.getId().toString()));
     public ExileKey<MapDataBlock, KeyInfo> UBER_ALTAR = ExileKey.ofId(this, "uber_boss_altar", x -> new SetBlockMB(x.GUID(), DungeonEntries.UBER_ALTAR.getId().toString()));
 
     @Override

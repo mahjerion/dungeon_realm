@@ -1,0 +1,35 @@
+# Can I create my own maps?
+
+Yes! All you need to do is create all the rooms, save them as structure blocks and list their names in the dungeon datapack json.
+Though there are a lot of details involved
+
+# How to create your own Dungeon Map?
+
+
+You must create a json for your arena:
+- copy an existing json from the mod jar
+- make sure each type has at least 1 room
+- Structure files must be max 16x[height]x16, height can be maximum possible
+
+To actually spawn content in these maps, you need use command blocks with data 'tags' or ids.
+Basically the Mod detects the text inside command blocks in the Dungeon Realm, and spawns content accordingly when a player is nearby.
+For example, the most common id: 'mob' spawns about 1-2 random mobs at the location.
+
+ - 'league_back'Sets block at location: library_of_exile:teleport_back
+ - 'mob'Spawns a few mobs
+ - 'chest'Always spawns a chest
+ - 'map_reward'This chest is a bit special, when you enter the reward room it will only spawn x amount of chests depending on your map finish rarity/score.
+ - 'elite_mob_horde'Spawns a lot of mobs. [With Mine and Slash installed, the mobs are higher rarity]
+ - 'map_teleporter'Sets block at location: library_of_exile:teleport_back
+ - 'teleport_back_block'Sets block at location: library_of_exile:teleport_back
+ - 'elite_mob'Spawns a few mobs, [With Mine and Slash installed, the mobs are higher rarity]
+ - 'uber_boss_altar'Sets block at location: dungeon_realm:uber_boss_altar
+ - 'league_spawn_pos'In case your boss arena, uber arena or reward room have very weird spawn positions, you can force players to teleport to this position instead.
+ - 'map_boss'Spawns the map boss, 1 of these is required per every Boss Arena
+ - 'chance_chest'Has 25% chance to spawn the chest, but only spawns it once inside a single room. Use this to randomize chest positions easily by placing a few of these in different spots
+ - 'mob_horde'Spawns a lot of mobs
+
+To create a map, you pretty much only need to know about: mob, mob_horde, chest and chance_chest!
+
+That's it, have fun creating custom Dungeon Maps!
+

@@ -14,6 +14,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
@@ -45,27 +46,22 @@ public class UberBossAltarBlock extends Block {
                         LivingEntity en = (LivingEntity) type.create(level);
                         en.setPos(new MyPosition(pPos).add(0, 1, 0));
 
-                        DungeonEntityCapability.get(en).data.isUberBoss = true;
-
                         p.sendSystemMessage(uber.getTranslation(TranslationType.DESCRIPTION).getTranslatedName().withStyle(ChatFormatting.RED, ChatFormatting.BOLD));
                         SoundUtils.playSound(p, SoundEvents.WITHER_SPAWN);
                         level.setBlock(pPos, Blocks.AIR.defaultBlockState(), 0);
 
                         level.addFreshEntity(en);
 
+                        DungeonEntityCapability.get(en).data.isUberBoss = true;
+
                         DungeonExileEvents.ON_SPAWN_UBER_BOSS.callEvents(new SpawnUberEvent(en));
+
+                        if (en instanceof Mob mob) {
+                            mob.setPersistenceRequired();
+                        }
 
 
                     });
-
-/*
-                    Load.Unit(en).setRarity(IRarity.UBER); // todo does this work
-                    level.addFreshEntity(en);
-                    Load.Unit(en).setRarity(IRarity.UBER); // todo does this work
-                    Load.Unit(en).isCorrectlySpawnedMapMob = true;
-                    Load.Unit(en).recalcStats_DONT_CALL();
-
- */
 
 
                 }

@@ -65,10 +65,11 @@ public class UberBossArena implements JsonExileRegistry<UberBossArena>, IAutoGso
                 .desc(ExileTranslation.registry(this, desc));
     }
 
-    public static UberBossArena createBoss(String id, String name, String chat, EntityType bossEntity, SimplePrebuiltMapData struc) {
+    public static UberBossArena createBoss(String id, String name, String modid, String chat, EntityType bossEntity, SimplePrebuiltMapData struc) {
         UberBossArena boss = new UberBossArena();
 
         boss.id = id;
+        boss.modid = modid;
         boss.name = name;
         boss.desc = chat;
 

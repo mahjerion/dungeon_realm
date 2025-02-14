@@ -1,8 +1,10 @@
 package com.robertx22.dungeon_realm.database.data_blocks.mobs;
 
 import com.robertx22.dungeon_realm.main.DataBlockTags;
+import com.robertx22.dungeon_realm.main.DungeonMain;
+import com.robertx22.library_of_exile.database.map_data_block.MapBlockCtx;
 import com.robertx22.library_of_exile.database.map_data_block.MapDataBlock;
-import com.robertx22.library_of_exile.database.mob_list.MobList;
+import com.robertx22.library_of_exile.util.wiki.WikiEntry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.EntityType;
@@ -19,12 +21,17 @@ public class BossMB extends MapDataBlock {
     }
 
     @Override
-    public void processImplementationINTERNAL(String s, BlockPos pos, Level level, CompoundTag nbt) {
-        EntityType<? extends LivingEntity> type = MobList.PREDETERMINED.getPredeterminedRandom(level, pos).getRandomMob().getType();
+    public void processImplementationINTERNAL(String s, BlockPos pos, Level level, CompoundTag nbt, MapBlockCtx ctx) {
+        EntityType<? extends LivingEntity> type = DungeonMain.DUNGEON_MOB_SPAWNS.getPredeterminedRandom(level, pos).getRandomMob().getType();
 
         MobBuilder.of(type, this, x -> {
             x.amount = 1;
         }).summonMobs(level, pos);
+    }
+
+    @Override
+    public WikiEntry getWikiEntry() {
+        return WikiEntry.none();
     }
 
     @Override

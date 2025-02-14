@@ -3,13 +3,17 @@ package com.robertx22.dungeon_realm.main;
 import com.google.common.collect.Lists;
 import com.robertx22.dungeon_realm.api.DungeonExileEvents;
 import com.robertx22.dungeon_realm.capability.DungeonEntityCapability;
-import com.robertx22.dungeon_realm.configs.ObeliskConfig;
+import com.robertx22.dungeon_realm.configs.DungeonConfig;
 import com.robertx22.dungeon_realm.database.DungeonDatabase;
-import com.robertx22.dungeon_realm.item.ObeliskMapItem;
+import com.robertx22.dungeon_realm.item.DungeonItemNbt;
+import com.robertx22.dungeon_realm.item.DungeonMapGenSettings;
+import com.robertx22.dungeon_realm.item.DungeonMapItem;
 import com.robertx22.dungeon_realm.structure.*;
-import com.robertx22.library_of_exile.config.map_dimension.MapDimensionConfig;
 import com.robertx22.library_of_exile.config.map_dimension.MapDimensionConfigDefaults;
 import com.robertx22.library_of_exile.config.map_dimension.MapRegisterBuilder;
+import com.robertx22.library_of_exile.database.init.LibDatabase;
+import com.robertx22.library_of_exile.database.init.PredeterminedResult;
+import com.robertx22.library_of_exile.database.mob_list.MobList;
 import com.robertx22.library_of_exile.dimension.MapChunkGenEvent;
 import com.robertx22.library_of_exile.dimension.MapContentType;
 import com.robertx22.library_of_exile.dimension.MapDimensionInfo;
@@ -17,8 +21,11 @@ import com.robertx22.library_of_exile.dimension.MapDimensions;
 import com.robertx22.library_of_exile.events.base.EventConsumer;
 import com.robertx22.library_of_exile.events.base.ExileEvents;
 import com.robertx22.library_of_exile.main.ApiForgeEvents;
+import com.robertx22.library_of_exile.registry.ExileRegistryType;
+import com.robertx22.library_of_exile.registry.helpers.OrderedModConstructor;
 import com.robertx22.library_of_exile.registry.register_info.ModRequiredRegisterInfo;
 import com.robertx22.library_of_exile.registry.util.ExileRegistryUtil;
+import com.robertx22.library_of_exile.unidentified.IdentifiableItems;
 import com.robertx22.library_of_exile.utils.RandomUtils;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
@@ -28,14 +35,18 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.data.event.GatherDataEvent;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
+import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.DistExecutor;
@@ -53,7 +64,7 @@ import java.util.function.Consumer;
 
 @Mod("dungeon_realm")
 public class DungeonMain {
-    public static boolean RUN_DEV_TOOLS = true;
+    public static boolean RUN_DEV_TOOLS = false;
 
     public static String MODID = "dungeon_realm";
     public static String DIMENSION_ID = "dungeon_realm:dungeon";
@@ -72,24 +83,26 @@ public class DungeonMain {
     public static UberArenaStructure UBER_ARENA = new UberArenaStructure();
     public static RewardStructure REWARD_ROOM = new RewardStructure();
 
-    public static MapDimensionInfo MAP = new MapDimensionInfo(DIMENSION_KEY, MAIN_DUNGEON_STRUCTURE, MapContentType.PRIMARY_CONTENT, Arrays.asList(ARENA, UBER_ARENA, REWARD_ROOM));
-
-    public static MapDimensionConfig getConfig() {
-        return MapDimensionConfig.get(DIMENSION_KEY);
-    }
+    public static MapDimensionInfo MAP = new MapDimensionInfo(
+            DIMENSION_KEY,
+            MAIN_DUNGEON_STRUCTURE,
+            MapContentType.PRIMARY_CONTENT,
+            Arrays.asList(ARENA, UBER_ARENA, REWARD_ROOM),
+            new DungeonMobValidator(),
+            new MapDimensionConfigDefaults(3, 1)
+    );
 
 
     public DungeonMain() {
 
-
         final IEventBus bus = FMLJavaModLoadingContext.get().getModEventBus();
+        OrderedModConstructor.register(new DungeonModConstructor(MODID), bus);
 
         DistExecutor.runWhenOn(Dist.CLIENT, () -> () -> {
             bus.addListener(this::clientSetup);
         });
 
         new MapRegisterBuilder(MAP)
-                .config(new MapDimensionConfigDefaults(1))
                 .chunkGenerator(new EventConsumer<MapChunkGenEvent>() {
                     @Override
                     public void accept(MapChunkGenEvent event) {
@@ -103,8 +116,6 @@ public class DungeonMain {
                 }, id("dungeon_chunk_gen"))
                 .build();
 
-        new DungeonModConstructor(MODID, bus);
-
 
         if (RUN_DEV_TOOLS) {
             ExileRegistryUtil.setCurrentRegistarMod(DungeonMain.MODID);
@@ -116,13 +127,10 @@ public class DungeonMain {
 
         ApiForgeEvents.registerForgeEvent(GatherDataEvent.class, event -> {
             var output = event.getGenerator().getPackOutput();
-            var chestsLootTables = new LootTableProvider.SubProviderEntry(DungeonLootTables.ObeliskLootTableProvider::new, LootContextParamSets.CHEST);
+            var chestsLootTables = new LootTableProvider.SubProviderEntry(DungeonLootTables.DungeonLootTableProvider::new, LootContextParamSets.CHEST);
             var provider = new LootTableProvider(output, Set.of(), List.of(chestsLootTables));
             event.getGenerator().addProvider(true, provider);
 
-            if (RUN_DEV_TOOLS) {
-                // todo this doesnt seem to gen here?   ObeliskDatabase.generateJsons();
-            }
 
             try {
                 // .. why does this not work otherwise?
@@ -132,13 +140,14 @@ public class DungeonMain {
             }
         });
 
-        ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, ObeliskConfig.SPEC);
+        ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, DungeonConfig.SPEC);
 
         bus.addListener(this::commonSetupEvent);
 
+        ApiForgeEvents.registerForgeEvent(RegisterCommandsEvent.class, event -> {
+            DungeonCommands.init(event.getDispatcher());
+        });
 
-        DungeonCommands.init();
-        ObeliskRewardLogic.init();
         DungeonEvents.init();
         DungeonExileEvents.init();
 
@@ -147,17 +156,18 @@ public class DungeonMain {
             public void accept(ExileEvents.OnChestLooted e) {
                 try {
 
-                    float chance = (float) (ObeliskConfig.get().OBELISK_SPAWN_CHANCE_ON_CHEST_LOOT.get() * ObeliskConfig.get().getDimChanceMulti(e.player.level()));
-                    if (RandomUtils.roll(chance)) {
-                        if (!MapDimensions.isMap(e.player.level())) {
+                    if (!MapDimensions.isMap(e.player.level())) {
+                        float chance = (float) (DungeonConfig.get().DUNGEON_MAP_SPAWN_CHANCE_ON_CHEST_LOOT.get() * DungeonConfig.get().getDimChanceMulti(e.player.level()));
+                        if (RandomUtils.roll(chance)) {
                             var empty = mygetEmptySlotsRandomized(e.inventory, new Random());
                             if (!empty.isEmpty()) {
                                 int index = RandomUtils.randomFromList(empty);
-                                var map = ObeliskMapItem.blankMap();
+                                var map = DungeonMapItem.newRandomMapItemStack(new DungeonMapGenSettings());
                                 e.inventory.setItem(index, map);
                             }
                         }
                     }
+
                 } catch (Exception ex) {
                     ex.printStackTrace();
                 }
@@ -179,7 +189,21 @@ public class DungeonMain {
                 })
                 .build());
 
-        System.out.println("Ancient Obelisks loaded.");
+        IdentifiableItems.register(DungeonEntries.DUNGEON_MAP_ITEM.getId(), new IdentifiableItems.Config() {
+            @Override
+            public boolean isUnidentified(ItemStack stack) {
+                return !DungeonItemNbt.DUNGEON_MAP.has(stack);
+            }
+
+            @Override
+            public void identify(Player player, ItemStack stack) {
+                var newstack = DungeonMapItem.newRandomMapItemStack(new DungeonMapGenSettings());
+                stack.setTag(newstack.getTag());
+            }
+        });
+
+
+        System.out.println("Dungeon Realm loaded.");
 
     }
 
@@ -197,22 +221,17 @@ public class DungeonMain {
         return list;
     }
 
+
     public static Optional<DungeonMapData> ifMapData(Level level, BlockPos pos) {
-        if (level.isClientSide) {
-            return Optional.empty();
-        }
-        var map = MapDimensions.getInfo(level);
-        if (map != null && map.dimensionId.equals(DIMENSION_KEY)) {
-            var mapdata = DungeonMapCapability.get(level).data.data.getData(MAIN_DUNGEON_STRUCTURE, pos);
-            if (mapdata != null) {
-                return Optional.of(mapdata);
-            }
-        }
-        return Optional.empty();
+        return DungeonMapCapability.DATA_GETTER.ifMapData(level, pos, true);
+    }
+
+    public static Optional<DungeonMapData> ifMapData(Level level, BlockPos pos, boolean grabConnectedData) {
+        return DungeonMapCapability.DATA_GETTER.ifMapData(level, pos, grabConnectedData);
     }
 
     public void clientSetup(final FMLClientSetupEvent event) {
-        ObeliskClient.init();
+        DungeonClient.init();
     }
 
     public void commonSetupEvent(FMLCommonSetupEvent event) {
@@ -229,6 +248,18 @@ public class DungeonMain {
                 x.addCapability(DungeonEntityCapability.RESOURCE, new DungeonEntityCapability(en));
             }
         });
-
     }
+
+    public static PredeterminedResult<MobList> DUNGEON_MOB_SPAWNS = new PredeterminedResult<MobList>() {
+        @Override
+        public ExileRegistryType getRegistryType() {
+            return LibDatabase.MOB_LIST;
+        }
+
+        @Override
+        public MobList getPredeterminedRandomINTERNAL(Random random, Level level, ChunkPos pos) {
+            var dungeon = MAIN_DUNGEON_STRUCTURE.getMap(pos).dungeon;
+            return LibDatabase.MobLists().getFilterWrapped(x -> dungeon.getDungeonData().mob_list_tag_check.matches(x).can).random(random.nextDouble());
+        }
+    };
 }

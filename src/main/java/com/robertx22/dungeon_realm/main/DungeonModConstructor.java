@@ -11,8 +11,8 @@ import java.util.Arrays;
 import java.util.List;
 
 public class DungeonModConstructor extends OrderedModConstructor {
-    public DungeonModConstructor(String modid, IEventBus modbus) {
-        super(modid, modbus);
+    public DungeonModConstructor(String modid) {
+        super(modid);
     }
 
     @Override
@@ -29,7 +29,14 @@ public class DungeonModConstructor extends OrderedModConstructor {
                 DungeonDungeons.INSTANCE,
                 DungeonBossArenas.INSTANCE,
                 DungeonUberBosses.INSTANCE,
-                DungeonBonusContents.INSTANCE
+                DungeonBonusContents.INSTANCE,
+                DungeonItemMods.INSTANCE,
+                DungeonItemReqs.INSTANCE,
+                DungeonOrbs.INSTANCE,
+                DungeonLeagues.INSTANCE,
+                DungeonRelicTypes.INSTANCE,
+                DungeonRelicStats.INSTANCE,
+                DungeonRelicAffixes.INSTANCE
         );
     }
 

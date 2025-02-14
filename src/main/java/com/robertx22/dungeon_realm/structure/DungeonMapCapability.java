@@ -2,7 +2,10 @@ package com.robertx22.dungeon_realm.structure;
 
 import com.google.gson.JsonSyntaxException;
 import com.robertx22.dungeon_realm.main.DungeonMain;
+import com.robertx22.library_of_exile.dimension.MapDataFinder;
+import com.robertx22.library_of_exile.dimension.MapDimensionInfo;
 import com.robertx22.library_of_exile.registry.IAutoGson;
+import com.robertx22.library_of_exile.utils.LoadSave;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
@@ -63,12 +66,25 @@ public class DungeonMapCapability implements ICapabilityProvider, INBTSerializab
     public void deserializeNBT(CompoundTag nbt) {
 
         try {
-            if (nbt.contains("data")) {
-                this.data = IAutoGson.GSON.fromJson(nbt.getString("data"), DungeonWorldData.class);
-            }
+            this.data = LoadSave.loadOrBlank(DungeonWorldData.class, new DungeonWorldData(), nbt, "data", new DungeonWorldData());
+
+
         } catch (JsonSyntaxException e) {
             e.printStackTrace();
         }
 
     }
+
+    public static MapDataFinder<DungeonMapData> DATA_GETTER = new MapDataFinder<>() {
+        @Override
+        public DungeonMapData getData(Pos pos) {
+            return get(pos.level).data.data.getData(this.getInfo().structure, pos.pos);
+        }
+
+        @Override
+        public MapDimensionInfo getInfo() {
+            return DungeonMain.MAP;
+        }
+
+    };
 }

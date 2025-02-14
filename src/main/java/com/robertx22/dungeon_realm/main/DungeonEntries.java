@@ -4,7 +4,9 @@ import com.robertx22.dungeon_realm.block.CustomSpawnTpBlock;
 import com.robertx22.dungeon_realm.block.MapDeviceBlock;
 import com.robertx22.dungeon_realm.block.UberBossAltarBlock;
 import com.robertx22.dungeon_realm.block_entity.MapDeviceBE;
-import com.robertx22.dungeon_realm.item.ObeliskMapItem;
+import com.robertx22.dungeon_realm.item.DungeonMapItem;
+import com.robertx22.dungeon_realm.item.TeleportBackItem;
+import com.robertx22.library_of_exile.database.relic.relic_type.RelicItem;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
@@ -37,9 +39,11 @@ public class DungeonEntries {
 
     // items
     public static RegistryObject<BlockItem> MAP_DEVICE_ITEM = ITEMS.register("map_device", () -> new BlockItem(MAP_DEVICE_BLOCK.get(), new Item.Properties().stacksTo(64)));
-    public static RegistryObject<ObeliskMapItem> DUNGEON_MAP_ITEM = ITEMS.register("dungeon_map", () -> new ObeliskMapItem());
+    public static RegistryObject<DungeonMapItem> DUNGEON_MAP_ITEM = ITEMS.register("dungeon_map", () -> new DungeonMapItem());
     public static RegistryObject<Item> UBER_FRAGMENT = ITEMS.register("uber_fragment", () -> new Item(new Item.Properties().stacksTo(64)));
-    // public static RegistryObject<HomeItem> HOME_TP_BACK = ITEMS.register("home", () -> new HomeItem());
+    public static RegistryObject<TeleportBackItem> HOME_TP_BACK = ITEMS.register("home_pearl", () -> new TeleportBackItem());
+    public static RegistryObject<Item> RELIC_KEY = ITEMS.register("relic_key", () -> new Item(new Item.Properties().stacksTo(1)));
+    public static RegistryObject<Item> RELIC_ITEM = ITEMS.register("general_relic", () -> new RelicItem());
 
 
     public static void initDeferred() {

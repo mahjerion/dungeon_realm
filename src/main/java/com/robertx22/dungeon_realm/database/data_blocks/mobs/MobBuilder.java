@@ -4,6 +4,7 @@ import com.robertx22.dungeon_realm.api.DungeonExileEvents;
 import com.robertx22.dungeon_realm.api.DungeonMobSpawnedEvent;
 import com.robertx22.dungeon_realm.api.PrepareDungeonMobEditsEvent;
 import com.robertx22.dungeon_realm.capability.DungeonEntityCapability;
+import com.robertx22.dungeon_realm.main.DungeonMain;
 import com.robertx22.library_of_exile.database.map_data_block.MapDataBlock;
 import com.robertx22.library_of_exile.utils.geometry.MyPosition;
 import net.minecraft.core.BlockPos;
@@ -11,6 +12,7 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 
@@ -48,7 +50,7 @@ public class MobBuilder {
     }
 
     private <T extends Mob> T summon(EntityType<T> type, Level world, BlockPos p) {
-        p = SpawnPointHelper.getBestSpawnPosition(world, p);
+        // p = SpawnPointHelper.getBestSpawnPosition(world, p);
 
         MyPosition vec = new MyPosition(p);
 
@@ -57,20 +59,26 @@ public class MobBuilder {
         mob.finalizeSpawn((ServerLevelAccessor) world, world.getCurrentDifficultyAt(p), MobSpawnType.REINFORCEMENT, null, null);
         mob.setPos(vec.x(), vec.y(), vec.z());
 
-        DungeonEntityCapability.get(mob).data.isDungeonMob = true;
 
         var prepare = new PrepareDungeonMobEditsEvent(mob, dataBlock);
         DungeonExileEvents.PREPARE_DUNGEON_MOB_SPAWN.callEvents(prepare);
+        this.mobEdits.addAll(prepare.edits);
 
-        for (Consumer<LivingEntity> edit : this.mobEdits) {
-            edit.accept(mob);
-        }
         // todo should i do edits before or after mob is spawned?
 
         world.addFreshEntity(mob);
 
+        for (Consumer<LivingEntity> edit : this.mobEdits) {
+            edit.accept(mob);
+        }
+        DungeonEntityCapability.get(mob).data.isDungeonMob = true;
+
         var afterSpawn = new DungeonMobSpawnedEvent(mob);
         DungeonExileEvents.DUNGEON_MOB_SPAWNED.callEvents(afterSpawn);
+
+        DungeonMain.ifMapData(world, p).ifPresent(x -> {
+            x.rooms.get(new ChunkPos(p)).mobs.total++;
+        });
 
         return mob;
     }

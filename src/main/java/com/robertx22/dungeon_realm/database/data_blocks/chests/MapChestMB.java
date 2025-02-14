@@ -2,8 +2,10 @@ package com.robertx22.dungeon_realm.database.data_blocks.chests;
 
 import com.robertx22.dungeon_realm.main.DungeonLootTables;
 import com.robertx22.dungeon_realm.main.DungeonMain;
+import com.robertx22.library_of_exile.database.map_data_block.MapBlockCtx;
 import com.robertx22.library_of_exile.database.map_data_block.MapDataBlock;
 import com.robertx22.library_of_exile.main.ExileLog;
+import com.robertx22.library_of_exile.util.wiki.WikiEntry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
@@ -28,7 +30,7 @@ public class MapChestMB extends MapDataBlock {
     }
 
     @Override
-    public void processImplementationINTERNAL(String key, BlockPos pos, Level world, CompoundTag nbt) {
+    public void processImplementationINTERNAL(String key, BlockPos pos, Level world, CompoundTag nbt, MapBlockCtx ctx) {
 
         boolean isTrapped = key.contains("trap");
 
@@ -59,5 +61,10 @@ public class MapChestMB extends MapDataBlock {
         } else {
             ExileLog.get().warn("Chest gen failed, tile not instanceof vanilla chest.");
         }
+    }
+
+    @Override
+    public WikiEntry getWikiEntry() {
+        return WikiEntry.of("Always spawns a chest");
     }
 }

@@ -24,7 +24,7 @@ public class DungeonItemMapData {
             x = start.x;
             z = start.z;
         }
-        ObeliskItemNbt.OBELISK_MAP.saveTo(stack, this);
+        DungeonItemNbt.DUNGEON_MAP.saveTo(stack, this);
         return new ChunkPos(x, z);
     }
 

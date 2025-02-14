@@ -97,7 +97,6 @@ public class Dungeon implements IAutoGson<Dungeon>, JsonExileRegistry<Dungeon>, 
         }
 
         public Dungeon build() {
-            dungeon.addToSerializables(DungeonDatabase.INFO);
             return dungeon;
         }
 

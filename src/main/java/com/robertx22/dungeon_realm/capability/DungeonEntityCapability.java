@@ -1,8 +1,8 @@
 package com.robertx22.dungeon_realm.capability;
 
-import com.google.gson.JsonSyntaxException;
 import com.robertx22.dungeon_realm.main.DungeonMain;
 import com.robertx22.library_of_exile.registry.IAutoGson;
+import com.robertx22.library_of_exile.utils.LoadSave;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
@@ -31,7 +31,7 @@ public class DungeonEntityCapability implements ICapabilityProvider, INBTSeriali
     }
 
     public static DungeonEntityCapability get(LivingEntity entity) {
-        return entity.getServer().overworld().getCapability(INSTANCE).orElse(new DungeonEntityCapability(entity));
+        return entity.getCapability(INSTANCE).orElse(new DungeonEntityCapability(entity));
     }
 
     public DungeonEntityData data = new DungeonEntityData();
@@ -63,10 +63,9 @@ public class DungeonEntityCapability implements ICapabilityProvider, INBTSeriali
     public void deserializeNBT(CompoundTag nbt) {
 
         try {
-            if (nbt.contains("data")) {
-                this.data = IAutoGson.GSON.fromJson(nbt.getString("data"), DungeonEntityData.class);
-            }
-        } catch (JsonSyntaxException e) {
+            this.data = LoadSave.loadOrBlank(DungeonEntityData.class, new DungeonEntityData(), nbt, "data", new DungeonEntityData());
+
+        } catch (Exception e) {
             e.printStackTrace();
         }
 

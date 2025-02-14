@@ -8,7 +8,7 @@ public class MixinConnector implements IMixinConnector {
     @Override
     public void connect() {
         Mixins.addConfiguration(
-                "ancient_obelisks-mixins.json"
+                "dungeon_realm-mixins.json"
         );
     }
 }

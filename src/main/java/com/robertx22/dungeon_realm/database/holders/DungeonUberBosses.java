@@ -22,6 +22,7 @@ public class DungeonUberBosses extends ExileKeyHolder<MapDataBlock> {
         var arena = UberBossArena.createBoss(
                 "uber1",
                 "Realm of Atrophy and Decay",
+                DungeonMain.MODID,
                 "A living mortal, in MY Realm?",
                 EntityType.WITHER,
                 new SimplePrebuiltMapData(3, DungeonMain.MODID + ":uber/river")

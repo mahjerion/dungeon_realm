@@ -1,6 +1,6 @@
 package com.robertx22.dungeon_realm.structure;
 
-import com.robertx22.dungeon_realm.configs.ObeliskConfig;
+import com.robertx22.dungeon_realm.configs.DungeonConfig;
 import com.robertx22.dungeon_realm.database.DungeonDatabase;
 import com.robertx22.library_of_exile.dimension.MapGenerationUTIL;
 import com.robertx22.library_of_exile.dimension.structure.dungeon.DungeonBuilder;
@@ -27,8 +27,8 @@ public class DungeonMapStructure extends DungeonStructure {
     public static DungeonBuilder.Settings dungeonSettings(ChunkPos pos) {
         return new DungeonBuilder.Settings(
                 MapGenerationUTIL.createRandom(pos),
-                ObeliskConfig.get().MIN_MAP_ROOMS.get(),
-                ObeliskConfig.get().MAX_MAP_ROOMS.get(),
+                DungeonConfig.get().MIN_MAP_ROOMS.get(),
+                DungeonConfig.get().MAX_MAP_ROOMS.get(),
                 DungeonDatabase.Dungeons().getFilterWrapped(x -> true).list.stream().collect(Collectors.toList()));
     }
 
