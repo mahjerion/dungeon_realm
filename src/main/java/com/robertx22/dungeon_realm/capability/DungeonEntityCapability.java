@@ -1,7 +1,6 @@
 package com.robertx22.dungeon_realm.capability;
 
 import com.robertx22.dungeon_realm.main.DungeonMain;
-import com.robertx22.library_of_exile.registry.IAutoGson;
 import com.robertx22.library_of_exile.utils.LoadSave;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -50,7 +49,7 @@ public class DungeonEntityCapability implements ICapabilityProvider, INBTSeriali
         var nbt = new CompoundTag();
 
         try {
-            nbt.putString("data", IAutoGson.GSON.toJson(data));
+            LoadSave.Save(data, nbt, "data");
         } catch (Exception e) {
             e.printStackTrace();
         }
