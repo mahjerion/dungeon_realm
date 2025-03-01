@@ -94,7 +94,7 @@ public class DungeonMain {
 
 
     public DungeonMain() {
-     
+
         final IEventBus bus = FMLJavaModLoadingContext.get().getModEventBus();
         OrderedModConstructor.register(new DungeonModConstructor(MODID), bus);
 

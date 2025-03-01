@@ -73,7 +73,15 @@ public class DungeonDungeons extends ExileKeyHolder<Dungeon> {
     public ExileKey<Dungeon, KeyInfo> STEAMPUNK = ExileKey.ofId(this, "steampunk", x -> {
         return Dungeon.Builder.of(x.GUID(), "Steampunk", new SteampunkRoomAdder(), DungeonMain.MODID).weight(50).build();
     });
+    public ExileKey<Dungeon, KeyInfo> NIGHT_TERROR = ExileKey.ofId(this, "night_terror", x -> {
+        return Dungeon.Builder.of(x.GUID(), "Night Terror", new NightTerrorAdder(), DungeonMain.MODID).weight(1000).author("CTE2 Team").build();
+    });
 
+    /* this uh, LAGS?
+    public ExileKey<Dungeon, KeyInfo> THE_END = ExileKey.ofId(this, "end", x -> {
+        return Dungeon.Builder.of(x.GUID(), "The End", new EndAdder(), DungeonMain.MODID).weight(1000).author("DoutingDonut").build();
+    });
+     */
 
     @Override
     public void loadClass() {

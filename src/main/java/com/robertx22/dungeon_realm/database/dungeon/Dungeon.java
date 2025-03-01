@@ -20,6 +20,8 @@ public class Dungeon implements IAutoGson<Dungeon>, JsonExileRegistry<Dungeon>, 
 
     public String id = "";
     public int weight = 1000;
+    public String author = "";
+
     public transient String name = "";
     public transient String modid = "";
 
@@ -80,6 +82,10 @@ public class Dungeon implements IAutoGson<Dungeon>, JsonExileRegistry<Dungeon>, 
             return b;
         }
 
+        public Builder author(String author) {
+            this.dungeon.author = author;
+            return this;
+        }
 
         public Builder weight(int w) {
             this.dungeon.weight = w;

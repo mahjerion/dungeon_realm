@@ -25,11 +25,17 @@ public class DungeonMapStructure extends DungeonStructure {
     }
 
     public static DungeonBuilder.Settings dungeonSettings(ChunkPos pos) {
-        return new DungeonBuilder.Settings(
+        var settings = new DungeonBuilder.Settings(
                 MapGenerationUTIL.createRandom(pos),
                 DungeonConfig.get().MIN_MAP_ROOMS.get(),
                 DungeonConfig.get().MAX_MAP_ROOMS.get(),
                 DungeonDatabase.Dungeons().getFilterWrapped(x -> true).list.stream().collect(Collectors.toList()));
+
+
+        // todo
+        // settings.possibleDungeons = Arrays.asList(DungeonDungeons.INSTANCE.NIGHT_TERROR.get());
+
+        return settings;
     }
 
     public ChunkPos getStartFromCounter(int x, int z) {
