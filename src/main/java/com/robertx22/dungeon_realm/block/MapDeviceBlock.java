@@ -129,26 +129,28 @@ public class MapDeviceBlock extends BaseEntityBlock {
 
             stack.shrink(1);
 
-            pdata.mapTeleports.entranceTeleportLogic(p, DungeonMain.DIMENSION_KEY, pos);
+            if (joinCurrentMap(p, be)) {
+                p.getServer().getLevel(ResourceKey.create(Registries.DIMENSION, DungeonMain.DIMENSION_KEY)).setBlock(pos.south(), DungeonEntries.MAP_DEVICE_BLOCK.get().defaultBlockState(), Block.UPDATE_ALL);
+            }
 
 
-            p.getServer().getLevel(ResourceKey.create(Registries.DIMENSION, DungeonMain.DIMENSION_KEY)).setBlock(pos.south(), DungeonEntries.MAP_DEVICE_BLOCK.get().defaultBlockState(), Block.UPDATE_ALL);
 
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public static void joinCurrentMap(Player p, MapDeviceBE be) {
+    public static boolean joinCurrentMap(Player p, MapDeviceBE be) {
 
         var event = new CanEnterMapEvent(p, be);
         DungeonExileEvents.CAN_ENTER_MAP.callEvents(event);
         if (!event.canEnter) {
-            return;
+            return false;
         }
 
         var pdata = PlayerDataCapability.get(p);
         pdata.mapTeleports.entranceTeleportLogic(p, DungeonMain.DIMENSION_KEY, be.pos);
+        return true;
     }
 
     public static ChestMenu inventory(int pContainerId, Inventory pPlayerInventory, Container pContainer) {
@@ -193,12 +195,6 @@ public class MapDeviceBlock extends BaseEntityBlock {
                     startNewMap(p, stack, obe);
                 } else {
                     if (obe.isActivated()) {
-
-                        if (p.getInventory().countItem(DungeonEntries.HOME_TP_BACK.get()) < 1) {
-                            p.sendSystemMessage(DungeonWords.NEED_HOME_PEARL.get(DungeonEntries.HOME_TP_BACK.get().getDefaultInstance().getHoverName()));
-                            return InteractionResult.SUCCESS;
-                        }
-
                         joinCurrentMap(p, obe);
                     }
                 }
@@ -208,6 +204,8 @@ public class MapDeviceBlock extends BaseEntityBlock {
 
         return InteractionResult.SUCCESS;
     }
+
+
 
 
     @Override

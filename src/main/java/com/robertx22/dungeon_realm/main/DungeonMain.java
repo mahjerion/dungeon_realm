@@ -5,6 +5,7 @@ import com.robertx22.dungeon_realm.api.DungeonExileEvents;
 import com.robertx22.dungeon_realm.capability.DungeonEntityCapability;
 import com.robertx22.dungeon_realm.configs.DungeonConfig;
 import com.robertx22.dungeon_realm.database.DungeonDatabase;
+import com.robertx22.dungeon_realm.event.listeners.NeedPearlListener;
 import com.robertx22.dungeon_realm.item.DungeonItemNbt;
 import com.robertx22.dungeon_realm.item.DungeonMapGenSettings;
 import com.robertx22.dungeon_realm.item.DungeonMapItem;
@@ -58,6 +59,9 @@ import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.ForgeRegistries;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.util.*;
 import java.util.function.Consumer;
@@ -68,6 +72,7 @@ public class DungeonMain {
 
     public static String MODID = "dungeon_realm";
     public static String DIMENSION_ID = "dungeon_realm:dungeon";
+    public static final Logger LOG = LoggerFactory.getLogger(MODID);
 
     public static ResourceLocation DIMENSION_KEY = new ResourceLocation(DIMENSION_ID);
     public static ModRequiredRegisterInfo REGISTER_INFO = new ModRequiredRegisterInfo(MODID);
@@ -202,9 +207,8 @@ public class DungeonMain {
             }
         });
 
-
-        System.out.println("Dungeon Realm loaded.");
-
+        DungeonExileEvents.CAN_ENTER_MAP.register(new NeedPearlListener());
+        LOG.info("Dungeon Realm loaded.");
     }
 
     private static List<Integer> mygetEmptySlotsRandomized(Container inventory, Random rand) {
