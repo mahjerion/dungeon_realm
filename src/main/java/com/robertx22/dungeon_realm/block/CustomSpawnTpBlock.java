@@ -3,6 +3,7 @@ package com.robertx22.dungeon_realm.block;
 import com.robertx22.dungeon_realm.main.DungeonMain;
 import com.robertx22.library_of_exile.components.PlayerDataCapability;
 import com.robertx22.library_of_exile.dimension.structure.MapStructure;
+import com.robertx22.library_of_exile.utils.TeleportUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
@@ -38,15 +39,16 @@ public class CustomSpawnTpBlock extends Block {
             }
             
             DungeonMain.ifMapData(level, pPos).ifPresent(x -> {
-                if (structure.get().isInside((ServerLevel) level, pPos)) {
+                MapStructure<?> mapStructure = structure.get();
+                if (mapStructure.isInside((ServerLevel) level, pPos)) {
                     PlayerDataCapability.get(p).mapTeleports.exitTeleportLogic(p);
                 } else {
                     BlockPos pos = null;
 
-                    if (x.spawnPositions.containsKey(structure.get().guid())) {
-                        pos = BlockPos.of(x.spawnPositions.get(structure.get().guid()));
+                    if (x.spawnPositions.containsKey(mapStructure.guid())) {
+                        pos = BlockPos.of(x.spawnPositions.get(mapStructure.guid()));
                     } else {
-                        pos = structure.get().getSpawnTeleportPos(pPos);
+                        pos = TeleportUtils.getSpawnTeleportPos(mapStructure, pPos);
                     }
                     var dim = level.dimensionTypeId().location();
                     PlayerDataCapability.get(p).mapTeleports.teleportToMap(p, dim, dim, pos);

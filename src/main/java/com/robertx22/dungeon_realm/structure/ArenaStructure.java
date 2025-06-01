@@ -26,7 +26,7 @@ public class ArenaStructure extends SimplePrebuiltMapStructure {
 
     @Override
     public SimplePrebuiltMapData getMap(ChunkPos start) {
-        return getArena(start).simple_prebuilt_map;
+        return getArena(start).structure;
     }
 
     @Override
