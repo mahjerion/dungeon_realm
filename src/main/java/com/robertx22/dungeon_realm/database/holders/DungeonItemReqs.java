@@ -1,6 +1,7 @@
 package com.robertx22.dungeon_realm.database.holders;
 
 import com.robertx22.dungeon_realm.database.item_reqs.BeMapReq;
+import com.robertx22.dungeon_realm.database.item_reqs.BeNotUberReq;
 import com.robertx22.dungeon_realm.main.DungeonMain;
 import com.robertx22.library_of_exile.registry.helpers.ExileKey;
 import com.robertx22.library_of_exile.registry.helpers.ExileKeyHolder;
@@ -17,6 +18,7 @@ public class DungeonItemReqs extends ExileKeyHolder<ItemRequirement> {
     }
 
     public ExileKey<ItemRequirement, KeyInfo> IS_MAP_ITEM = ExileKey.ofId(this, "is_map", x -> new BeMapReq(x.GUID()));
+    public ExileKey<ItemRequirement, KeyInfo> IS_NOT_UBER = ExileKey.ofId(this, "is_not_uber", x -> new BeNotUberReq(x.GUID()));
 
 
     @Override
