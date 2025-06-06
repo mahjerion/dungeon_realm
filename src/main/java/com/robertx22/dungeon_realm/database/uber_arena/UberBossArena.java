@@ -29,7 +29,7 @@ public class UberBossArena implements JsonExileRegistry<UberBossArena>, IAutoGso
     public int weight = 1000;
 
 
-    public SimplePrebuiltMapData structure = new SimplePrebuiltMapData(1, "");
+    public SimplePrebuiltMapData structure_data = new SimplePrebuiltMapData(1, "");
 
     public List<String> possible_bosses = new ArrayList<>();
 
@@ -75,7 +75,7 @@ public class UberBossArena implements JsonExileRegistry<UberBossArena>, IAutoGso
 
         boss.possible_bosses.add(ForgeRegistries.ENTITY_TYPES.getKey(bossEntity).toString());
 
-        boss.structure = struc;
+        boss.structure_data = struc;
         return boss;
     }
 }
