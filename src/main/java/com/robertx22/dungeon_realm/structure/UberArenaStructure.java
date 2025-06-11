@@ -26,7 +26,7 @@ public class UberArenaStructure extends SimplePrebuiltMapStructure {
 
     @Override
     public SimplePrebuiltMapData getMap(ChunkPos start) {
-        return getUber(start).structure;
+        return getUber(start).structure_data;
     }
 
     @Override

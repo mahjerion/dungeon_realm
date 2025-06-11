@@ -17,6 +17,7 @@ import com.robertx22.library_of_exile.components.LibMapData;
 import com.robertx22.library_of_exile.components.PlayerDataCapability;
 import com.robertx22.library_of_exile.database.relic.stat.RelicStatsContainer;
 import com.robertx22.library_of_exile.dimension.MapDimensions;
+import com.robertx22.library_of_exile.utils.TeleportUtils;
 import com.robertx22.library_of_exile.utils.geometry.Circle2d;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
@@ -100,7 +101,7 @@ public class MapDeviceBlock extends BaseEntityBlock {
 
             var count = map.getOrSetStartPos(p.level(), stack);
             var start = DungeonMain.MAIN_DUNGEON_STRUCTURE.getStartFromCounter(count.x, count.z);
-            var pos = DungeonMain.MAIN_DUNGEON_STRUCTURE.getSpawnTeleportPos(start.getMiddleBlockPosition(5));
+            var pos = TeleportUtils.getSpawnTeleportPos(DungeonMain.MAIN_DUNGEON_STRUCTURE, start.getMiddleBlockPosition(5));
 
             var pdata = PlayerDataCapability.get(p);
 

@@ -28,7 +28,7 @@ public class BossArena implements JsonExileRegistry<BossArena>, IAutoGson<BossAr
         return RandomUtils.randomFromList(possible_bosses.stream().map(x -> BuiltInRegistries.ENTITY_TYPE.get(new ResourceLocation(x))).collect(Collectors.toList()));
     }
 
-    public SimplePrebuiltMapData simple_prebuilt_map = new SimplePrebuiltMapData(1, "");
+    public SimplePrebuiltMapData structure = new SimplePrebuiltMapData(1, "");
 
     public int weight = 1000;
 
@@ -39,7 +39,7 @@ public class BossArena implements JsonExileRegistry<BossArena>, IAutoGson<BossAr
         this.possible_bosses = possible_bosses;
         this.size = size;
         this.weight = weight;
-        this.simple_prebuilt_map = map;
+        this.structure = map;
     }
 
     @Override
