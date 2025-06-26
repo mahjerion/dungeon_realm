@@ -39,6 +39,7 @@
 	"item.dungeon_realm.uber_upgrade": "Dungeon Map Uber Upgrade",
 	"library_of_exile.item_modification.uber_upgrade": "Adds the Uber Arena",
 	"library_of_exile.item_requirement.is_map": "Must be a Dungeon Map Item",
+	"library_of_exile.item_requirement.is_not_uber": "Must not be Uber",
 	"library_of_exile.league.reward_room": "Reward Room",
 	"library_of_exile.relic_stat.bonus_boss_frag_chance": "%1$s Increased Uber Fragment Drop chance from Map Bosses",
 	"library_of_exile.relic_stat.bonus_content_chance": "%1$s Chance to Spawn Additional Bonus Content",
