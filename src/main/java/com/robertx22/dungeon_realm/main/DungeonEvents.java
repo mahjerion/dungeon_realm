@@ -11,10 +11,13 @@ import com.robertx22.library_of_exile.components.LibMapCap;
 import com.robertx22.library_of_exile.dimension.MapDimensions;
 import com.robertx22.library_of_exile.events.base.EventConsumer;
 import com.robertx22.library_of_exile.events.base.ExileEvents;
+import com.robertx22.library_of_exile.main.ExileLog;
 import com.robertx22.library_of_exile.main.ApiForgeEvents;
 import com.robertx22.library_of_exile.util.PointData;
 import com.robertx22.library_of_exile.utils.RandomUtils;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
@@ -72,9 +75,17 @@ public class DungeonEvents {
                     }
                 }
 
+                // precondition: `isDungeonMob` and `isDungeonEliteMob` should be distinct
+                // both should not exist on the same mob
                 if (DungeonEntityCapability.get(mob).data.isDungeonMob) {
                     DungeonMain.ifMapData(mob.level(), mob.blockPosition()).ifPresent(x -> {
-                        x.rooms.get(mob.chunkPosition()).mobs.done++;
+                        x.mobKills++;
+                    });
+                }
+
+                if(DungeonEntityCapability.get(mob).data.isDungeonEliteMob) {
+                    DungeonMain.ifMapData(mob.level(), mob.blockPosition()).ifPresent(x -> {
+                        x.eliteKills++;
                     });
                 }
 
@@ -116,6 +127,44 @@ public class DungeonEvents {
             }
         });
 
+        ExileEvents.DUNGEON_DATA_BLOCK_PLACED.register(new EventConsumer<>() {
+            @Override
+            public void accept(ExileEvents.DungeonDataBlockPlaced event) {
+                var blockNbt = event.blockInfo.nbt();
+                if(blockNbt == null) {
+                    ExileLog.get().log("Dungeon Data Block NBT is null");
+                    return;
+                }
+                String blockMetadata;
+
+                if(blockNbt.contains("metadata")) {
+                    blockMetadata = blockNbt.getString("metadata");
+                } else if (blockNbt.contains("Command")) {
+                    blockMetadata = blockNbt.getString("Command");
+                } else {
+                    blockMetadata = "unknown";
+                }
+
+                var serverLevel = event.levelAccessor.getServer().getLevel(ResourceKey.create(Registries.DIMENSION, DungeonMain.DIMENSION_KEY));
+                if(DungeonMain.MAP.isInside(DungeonMain.MAIN_DUNGEON_STRUCTURE, serverLevel, event.pos)) {
+                    DungeonMain.ifMapData(serverLevel, event.pos).ifPresent(mapData -> {
+                        if(blockMetadata.contains("elite_mob_horde")) {
+                            mapData.elitePackDataBlockCount++;
+                        }
+                        else if(blockMetadata.contains("mob_horde") || blockMetadata.contains("pack")) {
+                            mapData.packDataBlockCount++;
+                        }
+                        else if(blockMetadata.contains("boss") || blockMetadata.contains("elite_mob")) {
+                            mapData.eliteDataBlockCount++;
+                        }
+                        else if(blockMetadata.contains("mob") || (blockMetadata.contains("spawn") && blockMetadata.contains(";"))) {
+                            mapData.mobDataBlockCount++;
+                        }
+                    });
+                }
+            }
+        });
+
 
         ExileEvents.ON_CHEST_LOOTED.register(new EventConsumer<>() {
             @Override
@@ -125,7 +174,7 @@ public class DungeonEvents {
                 }
                 if (MapDimensions.isMap(event.player.level())) {
                     DungeonMain.ifMapData(event.player.level(), event.pos).ifPresent(x -> {
-                        x.rooms.get(new ChunkPos(event.pos)).chests.done++;
+                        x.lootedChests++;
                     });
                 }
             }
@@ -137,12 +186,10 @@ public class DungeonEvents {
             public void accept(ExileEvents.OnProcessChunkData event) {
                 if (event.struc.guid().equals(DungeonMain.MAIN_DUNGEON_STRUCTURE.guid())) {
                     DungeonMain.ifMapData(event.p.level(), event.cp.getMiddleBlockPosition(5)).ifPresent(x -> {
-                        x.rooms.rooms.done++;
                         x.bonusContents.processedChunks++;
                         if (x.bonusContents.totalGenDungeonChunks < 1) {
                             var built = DungeonMain.MAIN_DUNGEON_STRUCTURE.getMap(event.cp);
                             built.build();
-                            x.rooms.rooms.total = built.builtDungeon.amount;
                             x.bonusContents.totalGenDungeonChunks = built.builtDungeon.amount;
                         }
                     });
