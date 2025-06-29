@@ -5,5 +5,7 @@ public class DungeonEntityData {
     public boolean isDungeonBoss = false;
     public boolean isUberBoss = false;
     public boolean isDungeonMob = false;
-    
+    public boolean isDungeonEliteMob = false;
+
+    public boolean isPackMob = false;
 }
