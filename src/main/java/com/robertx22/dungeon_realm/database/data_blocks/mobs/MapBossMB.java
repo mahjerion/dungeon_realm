@@ -1,6 +1,7 @@
 package com.robertx22.dungeon_realm.database.data_blocks.mobs;
 
 import com.robertx22.dungeon_realm.capability.DungeonEntityCapability;
+import com.robertx22.dungeon_realm.capability.DungeonEntityData;
 import com.robertx22.dungeon_realm.database.holders.DungeonRelicStats;
 import com.robertx22.dungeon_realm.main.DataBlockTags;
 import com.robertx22.dungeon_realm.main.DungeonMain;
@@ -43,9 +44,12 @@ public class MapBossMB extends MapDataBlock {
         int finalAmount = amount;
         for (LivingEntity en : MobBuilder.of(type, this, x -> {
             x.amount = finalAmount;
-        }).summonMobs(level, pos)) {
-            DungeonEntityCapability.get(en).data.isDungeonBoss = true;
 
+            DungeonEntityData d = new DungeonEntityData();
+            d.isDungeonBoss = true;
+
+            x.mobEntityData = d;
+        }).summonMobs(level, pos)) {
             if (en instanceof Mob mob) {
                 mob.setPersistenceRequired();
             }

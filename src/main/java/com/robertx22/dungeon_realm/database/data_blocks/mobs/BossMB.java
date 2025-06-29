@@ -1,5 +1,6 @@
 package com.robertx22.dungeon_realm.database.data_blocks.mobs;
 
+import com.robertx22.dungeon_realm.capability.DungeonEntityData;
 import com.robertx22.dungeon_realm.main.DataBlockTags;
 import com.robertx22.dungeon_realm.main.DungeonMain;
 import com.robertx22.library_of_exile.database.map_data_block.MapBlockCtx;
@@ -24,9 +25,16 @@ public class BossMB extends MapDataBlock {
     public void processImplementationINTERNAL(String s, BlockPos pos, Level level, CompoundTag nbt, MapBlockCtx ctx) {
         EntityType<? extends LivingEntity> type = DungeonMain.DUNGEON_MOB_SPAWNS.getPredeterminedRandom(level, pos).getRandomMob().getType();
 
+
         MobBuilder.of(type, this, x -> {
             x.amount = 1;
+
+            DungeonEntityData d = new DungeonEntityData();
+            d.isDungeonEliteMob = true;
+
+            x.mobEntityData = d;
         }).summonMobs(level, pos);
+
     }
 
     @Override

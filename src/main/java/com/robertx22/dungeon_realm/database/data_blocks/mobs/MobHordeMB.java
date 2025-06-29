@@ -1,5 +1,6 @@
 package com.robertx22.dungeon_realm.database.data_blocks.mobs;
 
+import com.robertx22.dungeon_realm.capability.DungeonEntityData;
 import com.robertx22.dungeon_realm.configs.DungeonConfig;
 import com.robertx22.dungeon_realm.main.DataBlockTags;
 import com.robertx22.dungeon_realm.main.DungeonMain;
@@ -33,6 +34,12 @@ public class MobHordeMB extends MapDataBlock {
 
         MobBuilder.of(type, this, x -> {
             x.amount = amount;
+
+            DungeonEntityData d = new DungeonEntityData();
+            d.isDungeonMob = true;
+            d.isPackMob = true;
+
+            x.mobEntityData = d;
         }).summonMobs(level, pos);
     }
 
