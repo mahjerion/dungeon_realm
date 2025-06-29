@@ -25,6 +25,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.scores.Objective;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 
 import java.util.Optional;
@@ -53,6 +54,14 @@ public class DungeonEvents {
                             DungeonMain.ifMapData(p.level(), p.blockPosition(), false).ifPresent(x -> {
                                 x.updateMapCompletionRarity(p);
                             });
+
+                            if(DungeonMain.ifMapData(p.level(), p.blockPosition(), false).isEmpty()) {
+                                var scoreboard = p.getScoreboard();
+                                Objective killCompletionPercentObj = scoreboard.getObjective("completion_percent");
+                                if(killCompletionPercentObj != null) {
+                                    p.getScoreboard().removeObjective(killCompletionPercentObj);
+                                }
+                            }
                         }
                     }
                 }
