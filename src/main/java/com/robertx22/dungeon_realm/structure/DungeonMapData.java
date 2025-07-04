@@ -159,7 +159,7 @@ public class DungeonMapData {
     public void updateMapCompletionRarity(ServerPlayer player) {
 
         int killCompletionPercent = calculateKillCompletionPercent();
-        ExileLog.get().log(showMapData());
+        ExileLog.get().debug(showMapData());
 
         for (Player p : DungeonMain.MAIN_DUNGEON_STRUCTURE.getAllPlayersInMap(player.level(), player.blockPosition())) {
 
@@ -185,9 +185,6 @@ public class DungeonMapData {
         var rar = LibDatabase.MapFinishRarity().get(current_mob_kill_rarity);
         if (rar.getHigher().isPresent()) {
             var higher = rar.getHigher().get();
-
-            ExileLog.get().log("Next percent to unlock: " + higher.perc_to_unlock);
-
 
             if (killCompletionPercent >= higher.perc_to_unlock) {
                 current_mob_kill_rarity = higher.GUID();

@@ -141,7 +141,7 @@ public class DungeonEvents {
             public void accept(ExileEvents.DungeonDataBlockPlaced event) {
                 var blockNbt = event.blockInfo.nbt();
                 if(blockNbt == null) {
-                    ExileLog.get().log("Dungeon Data Block NBT is null");
+                    ExileLog.get().warn("Dungeon Data Block NBT is null");
                     return;
                 }
                 String blockMetadata;
