@@ -63,6 +63,9 @@ public class MobBuilder {
                 } else {
                     x.processedEliteDataBlockCount++;
                 }
+            } else if (this.mobEntityData.isMiniBossMob) {
+                x.miniBossSpawnCount += amount;
+                x.processedMiniBossDataBlockCount++;
             }
         });
 

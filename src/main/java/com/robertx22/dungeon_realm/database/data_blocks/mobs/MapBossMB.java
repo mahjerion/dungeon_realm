@@ -1,6 +1,5 @@
 package com.robertx22.dungeon_realm.database.data_blocks.mobs;
 
-import com.robertx22.dungeon_realm.capability.DungeonEntityCapability;
 import com.robertx22.dungeon_realm.capability.DungeonEntityData;
 import com.robertx22.dungeon_realm.database.holders.DungeonRelicStats;
 import com.robertx22.dungeon_realm.main.DataBlockTags;
@@ -46,7 +45,7 @@ public class MapBossMB extends MapDataBlock {
             x.amount = finalAmount;
 
             DungeonEntityData d = new DungeonEntityData();
-            d.isDungeonBoss = true;
+            d.isFinalMapBoss = true;
 
             x.mobEntityData = d;
         }).summonMobs(level, pos)) {

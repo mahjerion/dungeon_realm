@@ -30,7 +30,7 @@ public class BossMB extends MapDataBlock {
             x.amount = 1;
 
             DungeonEntityData d = new DungeonEntityData();
-            d.isDungeonEliteMob = true;
+            d.isMiniBossMob = true;
 
             x.mobEntityData = d;
         }).summonMobs(level, pos);

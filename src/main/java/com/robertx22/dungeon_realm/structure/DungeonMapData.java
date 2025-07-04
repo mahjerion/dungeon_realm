@@ -45,11 +45,13 @@ public class DungeonMapData {
     public int packDataBlockCount = 0;
     public int eliteDataBlockCount = 0;
     public int elitePackDataBlockCount = 0;
+    public int miniBossDataBlockCount = 0;
 
     public int processedMobDataBlockCount = 0;
     public int processedPackDataBlockCount = 0;
     public int processedEliteDataBlockCount = 0;
     public int processedElitePackDataBlockCount = 0;
+    public int processedMiniBossDataBlockCount = 0;
 
     private int mobBlocksLeftToProcess() {
         return mobDataBlockCount - processedMobDataBlockCount;
@@ -67,11 +69,17 @@ public class DungeonMapData {
         return elitePackDataBlockCount - processedElitePackDataBlockCount;
     }
 
+    private int miniBossBlocksLeftToProcess() {
+        return miniBossDataBlockCount - processedMiniBossDataBlockCount;
+    }
+
     public int mobSpawnCount = 0;
     public int eliteSpawnCount = 0;
+    public int miniBossSpawnCount = 0;
 
     public int mobKills = 0;
     public int eliteKills = 0;
+    public int miniBossKills = 0;
 
     public int totalChests = 0;
     public int lootedChests = 0;
@@ -102,11 +110,13 @@ public class DungeonMapData {
         result += "packCommandBlockCount: (" + processedPackDataBlockCount + "/" + packDataBlockCount + ")\n";
         result += "eliteCommandBlockCount: (" + processedEliteDataBlockCount + "/" + eliteDataBlockCount + ")\n";
         result += "elitePackCommandBlockCount: (" + processedElitePackDataBlockCount + "/" + elitePackDataBlockCount + ")\n";
+        result += "miniBossCommandBlockCount: (" + processedMiniBossDataBlockCount + "/" + miniBossDataBlockCount + ")\n";
 
         result += "mobSpawnCount: " + mobSpawnCount + "\n";
         result += "eliteSpawnCount: " + eliteSpawnCount + "\n";
         result += "mobKills: " + mobKills + "\n";
         result += "eliteKills: " + eliteKills + "\n";
+        result += "miniBossKills: " + miniBossKills + "\n";
 
         result += "totalChests: " + totalChests + "\n";
         result += "lootedChests: " + lootedChests + "\n";
@@ -115,28 +125,36 @@ public class DungeonMapData {
     }
 
     private int calculateKillCompletionPercent() {
-        int ELITE_KILL_WEIGHT = 10;
+        int ELITE_KILL_WEIGHT = DungeonConfig.get().ELITE_MOB_COMPLETION_WEIGHT.get();
+        int MINI_BOSS_KILL_WEIGHT = DungeonConfig.get().MINI_BOSS_COMPLETION_WEIGHT.get();
+        int KILL_COMPLETION_DATA_BLOCK_LEEWAY = DungeonConfig.get().KILL_COMPLETION_DATA_BLOCK_LEEWAY.get();
 
         // the addition here accounts for cases where I'm marking blocks as the wrong type
         // for example, if we have 43/40 mob blocks processed
         // and 0/3 elite blocks, we know all blocks have *actually* been processed, but I got the type counts wrong
         // so consider it to be complete if the total of "blocks left" equates to 0
-        if(mobBlocksLeftToProcess() + packBlocksLeftToProcess() + eliteBlocksLeftToProcess() + elitePackBlocksLeftToProcess() - 2 <= 0) {
+        if(mobBlocksLeftToProcess()
+                + packBlocksLeftToProcess()
+                + eliteBlocksLeftToProcess()
+                + elitePackBlocksLeftToProcess()
+                + miniBossBlocksLeftToProcess()
+                - KILL_COMPLETION_DATA_BLOCK_LEEWAY <= 0) {
             // All blocks processed - simple calculation with weighted kills
-            int totalPossibleWeightedKills = mobSpawnCount + (eliteSpawnCount * ELITE_KILL_WEIGHT);
-            int actualWeightedKills = mobKills + (eliteKills * ELITE_KILL_WEIGHT);
+            int totalPossibleWeightedKills = mobSpawnCount + (eliteSpawnCount * ELITE_KILL_WEIGHT) + (miniBossSpawnCount * MINI_BOSS_KILL_WEIGHT);
+            int actualWeightedKills = mobKills + (eliteKills * ELITE_KILL_WEIGHT) + (miniBossKills * MINI_BOSS_KILL_WEIGHT);
 
-            if (totalPossibleWeightedKills == 0) return 100; // Avoid division by zero
+            if (totalPossibleWeightedKills == 0) return 0; // Avoid division by zero
 
             float percentage = (actualWeightedKills / (float) totalPossibleWeightedKills) * 100f;
             int rounded = Math.round(percentage);
             return Math.min(rounded, 100);
         } else {
-            // Blocks still being processed - use upper bounds
+            // Blocks still being processed - assume the worst
             int maxMobsLeft = ( mobBlocksLeftToProcess() * DungeonConfig.get().MOB_MAX.get() ) +
                     ( packBlocksLeftToProcess() * DungeonConfig.get().PACK_MOB_MAX.get() ) +
                     ( eliteBlocksLeftToProcess() * ELITE_KILL_WEIGHT) +
-                    ( elitePackBlocksLeftToProcess() * DungeonConfig.get().PACK_MOB_MAX.get() * ELITE_KILL_WEIGHT);
+                    ( elitePackBlocksLeftToProcess() * DungeonConfig.get().PACK_MOB_MAX.get() * ELITE_KILL_WEIGHT) +
+                    ( miniBossBlocksLeftToProcess() * MINI_BOSS_KILL_WEIGHT);
 
             int totalPossibleWeightedKills = mobSpawnCount + (eliteSpawnCount * ELITE_KILL_WEIGHT) + maxMobsLeft;
             int actualWeightedKills = mobKills + (eliteKills * ELITE_KILL_WEIGHT);
@@ -151,6 +169,7 @@ public class DungeonMapData {
 
     // precondition: totalChests > 0, so at least 1 has spawned
     private int calculateLootCompletionPercent() {
+            if(totalChests == 0) return 0;
             float percentage = (lootedChests / (float) totalChests) * 100f;
             int rounded = Math.round(percentage);
             return Math.min(rounded, 100);

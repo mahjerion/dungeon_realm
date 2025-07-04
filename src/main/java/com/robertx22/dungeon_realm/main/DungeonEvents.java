@@ -76,7 +76,7 @@ public class DungeonEvents {
 
             if (MapDimensions.isMap(mob.level())) {
 
-                if (DungeonEntityCapability.get(mob).data.isDungeonBoss) {
+                if (DungeonEntityCapability.get(mob).data.isFinalMapBoss) {
                     if (MapDimensions.isMap(mob.level())) {
                         mob.level().setBlock(mob.blockPosition(), DungeonEntries.REWARD_TELEPORT.get().defaultBlockState(), Block.UPDATE_ALL);
                         DungeonMain.REWARD_ROOM.generateManually((ServerLevel) mob.level(), mob.chunkPosition());
@@ -98,6 +98,12 @@ public class DungeonEvents {
                     });
                 }
 
+                if(DungeonEntityCapability.get(mob).data.isMiniBossMob) {
+                    DungeonMain.ifMapData(mob.level(), mob.blockPosition()).ifPresent(x -> {
+                        x.miniBossKills++;
+                    });
+                }
+
                 // hm, 3 relics per uber and 1 per map boss is ok?
                 if (DungeonEntityCapability.get(mob).data.isUberBoss) {
                     for (int i = 0; i < 3; i++) {
@@ -105,7 +111,7 @@ public class DungeonEvents {
                     }
                 }
 
-                if (DungeonEntityCapability.get(mob).data.isDungeonBoss) {
+                if (DungeonEntityCapability.get(mob).data.isFinalMapBoss) {
 
                     mob.spawnAtLocation(RelicGenerator.randomRelicItem(Optional.empty(), new RelicGenerator.Settings()));
 
@@ -163,8 +169,11 @@ public class DungeonEvents {
                         else if(blockMetadata.contains("mob_horde") || blockMetadata.contains("pack")) {
                             mapData.packDataBlockCount++;
                         }
-                        else if(blockMetadata.contains("boss") || blockMetadata.contains("elite_mob")) {
+                        else if(blockMetadata.contains("elite_mob")) {
                             mapData.eliteDataBlockCount++;
+                        }
+                        else if(blockMetadata.contains("boss")) { // also covers boss_mob
+                            mapData.miniBossDataBlockCount++;
                         }
                         else if(blockMetadata.contains("mob") || (blockMetadata.contains("spawn") && blockMetadata.contains(";"))) {
                             mapData.mobDataBlockCount++;
