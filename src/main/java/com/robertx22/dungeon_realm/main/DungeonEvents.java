@@ -2,6 +2,8 @@ package com.robertx22.dungeon_realm.main;
 
 import com.robertx22.dungeon_realm.capability.DungeonEntityCapability;
 import com.robertx22.dungeon_realm.configs.DungeonConfig;
+import com.robertx22.dungeon_realm.database.data_blocks.mobs.MobMB;
+import com.robertx22.dungeon_realm.database.holders.DungeonMapBlocks;
 import com.robertx22.dungeon_realm.database.holders.DungeonRelicStats;
 import com.robertx22.dungeon_realm.item.DungeonMapGenSettings;
 import com.robertx22.dungeon_realm.item.DungeonMapItem;
@@ -152,9 +154,9 @@ public class DungeonEvents {
                 }
                 String blockMetadata;
 
-                if(blockNbt.contains("metadata")) {
+                if(blockNbt.contains("metadata")) { // structure block
                     blockMetadata = blockNbt.getString("metadata");
-                } else if (blockNbt.contains("Command")) {
+                } else if (blockNbt.contains("Command")) { // command block
                     blockMetadata = blockNbt.getString("Command");
                 } else {
                     blockMetadata = "unknown";
@@ -163,21 +165,8 @@ public class DungeonEvents {
                 var serverLevel = event.levelAccessor.getServer().getLevel(ResourceKey.create(Registries.DIMENSION, DungeonMain.DIMENSION_KEY));
                 if(DungeonMain.MAP.isInside(DungeonMain.MAIN_DUNGEON_STRUCTURE, serverLevel, event.pos)) {
                     DungeonMain.ifMapData(serverLevel, event.pos).ifPresent(mapData -> {
-                        if(blockMetadata.contains("elite_mob_horde")) {
-                            mapData.elitePackDataBlockCount++;
-                        }
-                        else if(blockMetadata.contains("mob_horde") || blockMetadata.contains("pack")) {
-                            mapData.packDataBlockCount++;
-                        }
-                        else if(blockMetadata.contains("elite_mob")) {
-                            mapData.eliteDataBlockCount++;
-                        }
-                        else if(blockMetadata.contains("boss")) { // also covers boss_mob
-                            mapData.miniBossDataBlockCount++;
-                        }
-                        else if(blockMetadata.contains("mob") || (blockMetadata.contains("spawn") && blockMetadata.contains(";"))) {
-                            mapData.mobDataBlockCount++;
-                        }
+                        var mobSpawnBlockKind = DungeonMapBlocks.getMobSpawnBlockKindFromBlockMetadata(blockMetadata);
+                        mobSpawnBlockKind.ifPresent(mapData::incrementSpawnBlockCountByKind);
                     });
                 }
             }

@@ -5,6 +5,8 @@ import com.robertx22.dungeon_realm.configs.DungeonConfig;
 import com.robertx22.dungeon_realm.main.DataBlockTags;
 import com.robertx22.dungeon_realm.main.DungeonMain;
 import com.robertx22.dungeon_realm.stat_util.MobPackSizeEffect;
+import com.robertx22.dungeon_realm.structure.MobSpawnBlockKind;
+import com.robertx22.dungeon_realm.structure.IGetMobSpawnBlockKind;
 import com.robertx22.library_of_exile.database.map_data_block.MapBlockCtx;
 import com.robertx22.library_of_exile.database.map_data_block.MapDataBlock;
 import com.robertx22.library_of_exile.util.wiki.WikiEntry;
@@ -15,12 +17,16 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 
-public class EliteMobHordeMB extends MapDataBlock {
+public class EliteMobHordeMB extends MapDataBlock implements IGetMobSpawnBlockKind {
 
     public EliteMobHordeMB(String id) {
         super(id, id);
 
         this.tags.add(DataBlockTags.CAN_SPAWN_LEAGUE);
+    }
+
+    public MobSpawnBlockKind getMobSpawnBlockKind() {
+        return MobSpawnBlockKind.ELITE_PACK;
     }
 
     @Override

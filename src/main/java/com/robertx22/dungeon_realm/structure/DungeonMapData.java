@@ -88,6 +88,16 @@ public class DungeonMapData {
         return LibDatabase.MapFinishRarity().get(current_mob_kill_rarity);
     }
 
+    public void incrementSpawnBlockCountByKind(MobSpawnBlockKind kind) {
+        switch(kind) {
+            case MOB -> mobDataBlockCount++;
+            case MOB_PACK -> packDataBlockCount++;
+            case ELITE -> eliteDataBlockCount++;
+            case ELITE_PACK -> elitePackDataBlockCount++;
+            case MINI_BOSS -> miniBossDataBlockCount++;
+        }
+    }
+
     public void spawnBonusMapContent(Level level, BlockPos pos) {
         // bonus content should only spawn inside the main dungeon structure
         if (DungeonMain.MAIN_DUNGEON_STRUCTURE.isInside((ServerLevel) level, pos)) {

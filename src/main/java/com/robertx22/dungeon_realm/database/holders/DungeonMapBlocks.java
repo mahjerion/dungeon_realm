@@ -7,6 +7,8 @@ import com.robertx22.dungeon_realm.database.data_blocks.chests.RewardRoomChestMB
 import com.robertx22.dungeon_realm.database.data_blocks.mobs.*;
 import com.robertx22.dungeon_realm.main.DungeonEntries;
 import com.robertx22.dungeon_realm.main.DungeonMain;
+import com.robertx22.dungeon_realm.structure.IGetMobSpawnBlockKind;
+import com.robertx22.dungeon_realm.structure.MobSpawnBlockKind;
 import com.robertx22.library_of_exile.database.map_data_block.MapDataBlock;
 import com.robertx22.library_of_exile.database.map_data_block.all.SetBlockMB;
 import com.robertx22.library_of_exile.main.ExileLibEntries;
@@ -14,6 +16,10 @@ import com.robertx22.library_of_exile.registry.helpers.ExileKey;
 import com.robertx22.library_of_exile.registry.helpers.ExileKeyHolder;
 import com.robertx22.library_of_exile.registry.helpers.KeyInfo;
 import com.robertx22.library_of_exile.registry.register_info.ModRequiredRegisterInfo;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 
 public class DungeonMapBlocks extends ExileKeyHolder<MapDataBlock> {
 
@@ -39,5 +45,31 @@ public class DungeonMapBlocks extends ExileKeyHolder<MapDataBlock> {
     @Override
     public void loadClass() {
 
+    }
+
+    private static final List<IGetMobSpawnBlockKind> MOB_SPAWN_BLOCKS = Arrays.asList(
+            new MobMB(INSTANCE.MOB.GUID()),
+            new EliteMobMB(INSTANCE.ELITE_MOB.GUID()),
+            new MobHordeMB(INSTANCE.MOB_HORDE.GUID()),
+            new EliteMobHordeMB(INSTANCE.ELITE_MOB_HORDE.GUID()),
+            new BossMB(INSTANCE.BOSS.GUID())
+    );
+
+    public static Optional<MobSpawnBlockKind> getMobSpawnBlockKindFromBlockMetadata(String blockMetadata) {
+        for(IGetMobSpawnBlockKind mobSpawnBlock : MOB_SPAWN_BLOCKS) {
+            MapDataBlock block = (MapDataBlock) mobSpawnBlock;
+            if(block.matches(blockMetadata, null, null, null)) {
+                return Optional.of(mobSpawnBlock.getMobSpawnBlockKind());
+            }
+        }
+
+        // special handling for old structure blocks of the form:
+        // spawn;stray;4
+        // can be removed when maps are updated to all use command blocks with modern metadata strings
+        if(blockMetadata.contains("spawn") && blockMetadata.contains(";")) {
+            return Optional.of(MobSpawnBlockKind.MOB);
+        }
+
+        return Optional.empty();
     }
 }
