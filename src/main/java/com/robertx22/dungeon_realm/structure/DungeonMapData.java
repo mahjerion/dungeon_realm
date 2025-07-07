@@ -89,13 +89,7 @@ public class DungeonMapData {
     }
 
     public void incrementSpawnBlockCountByKind(MobSpawnBlockKind kind) {
-        switch(kind) {
-            case MOB -> mobDataBlockCount++;
-            case MOB_PACK -> packDataBlockCount++;
-            case ELITE -> eliteDataBlockCount++;
-            case ELITE_PACK -> elitePackDataBlockCount++;
-            case MINI_BOSS -> miniBossDataBlockCount++;
-        }
+        kind.incrementDataBlockCount(this);
     }
 
     public void spawnBonusMapContent(Level level, BlockPos pos) {
