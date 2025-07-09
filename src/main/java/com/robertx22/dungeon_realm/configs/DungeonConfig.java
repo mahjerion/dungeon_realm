@@ -35,6 +35,11 @@ public class DungeonConfig {
 
     public ForgeConfigSpec.DoubleValue UBER_FRAG_DROPRATE;
 
+    public ForgeConfigSpec.IntValue ELITE_MOB_COMPLETION_WEIGHT;
+    public ForgeConfigSpec.IntValue MINI_BOSS_COMPLETION_WEIGHT;
+
+    public ForgeConfigSpec.IntValue KILL_COMPLETION_DATA_BLOCK_LEEWAY;
+
     public static DungeonConfig get() {
         return CONFIG;
     }
@@ -84,6 +89,20 @@ public class DungeonConfig {
         PACK_MOB_MAX = b.defineInRange("pack_mob_max", 6, 0, 20);
 
         UBER_FRAG_DROPRATE = b.comment("Uber fragments can drop from A map boss, default chance is 10%").defineInRange("UBER_FRAG_DROP_RATE", 10D, 0, 100);
+
+        ELITE_MOB_COMPLETION_WEIGHT = b.comment("How many mobs should an elite mob count for in terms of map completion? Default is 10, so 10x a normal mob death. Max 9999")
+                                       .defineInRange("elite_mob_completion_weight", 10, 1, 9999);
+
+        MINI_BOSS_COMPLETION_WEIGHT = b.comment("How many mobs should a miniboss mob count for in terms of map completion? Default is 20, so 20x a normal mob death. Max 9999")
+                                       .defineInRange("mini_boss_completion_weight", 20, 1, 9999);
+
+        KILL_COMPLETION_DATA_BLOCK_LEEWAY = b.comment("Number of data blocks allowed to be potentially miscounted to transition to accurate kill counts. Defaults to 2, between 0-20.")
+                .comment("For example, if you have 20 data blocks, and the player has come into range of 18, with a leeway of 2, this means 18 + 2 >= 20, so assume all mobs have been spawned.")
+                .comment("This matters *mostly* for the kill completion assumptions. Until all mobs are spawned, it assumes remaining data blocks (command blocks or structure blocks)")
+                .comment("will spawn either the MOB_MAX or PACK_MOB_MAX number of mobs. When you cross the threshold + leeway, it assumes all mobs have been spawned, so the")
+                .comment("denominator for the calculation shrinks, and kill % goes up. 2 seems to be roughly the right number from testing, but if this proves to be insanely accurate")
+                .comment("feel free to crank this back down to 1 or 0.")
+                        .defineInRange("kill_completion_data_block_leeway", 2, 0, 20);
 
         b.pop();
     }

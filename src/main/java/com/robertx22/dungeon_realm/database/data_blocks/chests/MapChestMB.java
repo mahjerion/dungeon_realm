@@ -38,6 +38,9 @@ public class MapChestMB extends MapDataBlock {
 
 
         createChest(world, pos, isTrapped, table);
+        DungeonMain.ifMapData(world, pos).ifPresent(x -> {
+            x.totalChests++;
+        });
     }
 
     public static void createChest(Level world, BlockPos pos, boolean trapped, ResourceLocation table) {
@@ -55,9 +58,6 @@ public class MapChestMB extends MapDataBlock {
 
             chest.setLootTable(world, world.getRandom(), pos, table);
 
-            DungeonMain.ifMapData(world, pos).ifPresent(x -> {
-                x.rooms.get(new ChunkPos(pos)).chests.total++;
-            });
         } else {
             ExileLog.get().warn("Chest gen failed, tile not instanceof vanilla chest.");
         }

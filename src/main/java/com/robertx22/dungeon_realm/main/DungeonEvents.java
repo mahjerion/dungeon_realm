@@ -2,6 +2,8 @@ package com.robertx22.dungeon_realm.main;
 
 import com.robertx22.dungeon_realm.capability.DungeonEntityCapability;
 import com.robertx22.dungeon_realm.configs.DungeonConfig;
+import com.robertx22.dungeon_realm.database.data_blocks.mobs.MobMB;
+import com.robertx22.dungeon_realm.database.holders.DungeonMapBlocks;
 import com.robertx22.dungeon_realm.database.holders.DungeonRelicStats;
 import com.robertx22.dungeon_realm.item.DungeonMapGenSettings;
 import com.robertx22.dungeon_realm.item.DungeonMapItem;
@@ -11,10 +13,13 @@ import com.robertx22.library_of_exile.components.LibMapCap;
 import com.robertx22.library_of_exile.dimension.MapDimensions;
 import com.robertx22.library_of_exile.events.base.EventConsumer;
 import com.robertx22.library_of_exile.events.base.ExileEvents;
+import com.robertx22.library_of_exile.main.ExileLog;
 import com.robertx22.library_of_exile.main.ApiForgeEvents;
 import com.robertx22.library_of_exile.util.PointData;
 import com.robertx22.library_of_exile.utils.RandomUtils;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
@@ -22,6 +27,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.scores.Objective;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 
 import java.util.Optional;
@@ -50,6 +56,14 @@ public class DungeonEvents {
                             DungeonMain.ifMapData(p.level(), p.blockPosition(), false).ifPresent(x -> {
                                 x.updateMapCompletionRarity(p);
                             });
+
+                            if(DungeonMain.ifMapData(p.level(), p.blockPosition(), false).isEmpty()) {
+                                var scoreboard = p.getScoreboard();
+                                Objective killCompletionPercentObj = scoreboard.getObjective("completion_percent");
+                                if(killCompletionPercentObj != null) {
+                                    p.getScoreboard().removeObjective(killCompletionPercentObj);
+                                }
+                            }
                         }
                     }
                 }
@@ -64,7 +78,7 @@ public class DungeonEvents {
 
             if (MapDimensions.isMap(mob.level())) {
 
-                if (DungeonEntityCapability.get(mob).data.isDungeonBoss) {
+                if (DungeonEntityCapability.get(mob).data.isFinalMapBoss) {
                     if (MapDimensions.isMap(mob.level())) {
                         mob.level().setBlock(mob.blockPosition(), DungeonEntries.REWARD_TELEPORT.get().defaultBlockState(), Block.UPDATE_ALL);
                         DungeonMain.REWARD_ROOM.generateManually((ServerLevel) mob.level(), mob.chunkPosition());
@@ -72,9 +86,23 @@ public class DungeonEvents {
                     }
                 }
 
+                // precondition: `isDungeonMob` and `isDungeonEliteMob` should be distinct
+                // both should not exist on the same mob
                 if (DungeonEntityCapability.get(mob).data.isDungeonMob) {
                     DungeonMain.ifMapData(mob.level(), mob.blockPosition()).ifPresent(x -> {
-                        x.rooms.get(mob.chunkPosition()).mobs.done++;
+                        x.mobKills++;
+                    });
+                }
+
+                if(DungeonEntityCapability.get(mob).data.isDungeonEliteMob) {
+                    DungeonMain.ifMapData(mob.level(), mob.blockPosition()).ifPresent(x -> {
+                        x.eliteKills++;
+                    });
+                }
+
+                if(DungeonEntityCapability.get(mob).data.isMiniBossMob) {
+                    DungeonMain.ifMapData(mob.level(), mob.blockPosition()).ifPresent(x -> {
+                        x.miniBossKills++;
                     });
                 }
 
@@ -85,7 +113,7 @@ public class DungeonEvents {
                     }
                 }
 
-                if (DungeonEntityCapability.get(mob).data.isDungeonBoss) {
+                if (DungeonEntityCapability.get(mob).data.isFinalMapBoss) {
 
                     mob.spawnAtLocation(RelicGenerator.randomRelicItem(Optional.empty(), new RelicGenerator.Settings()));
 
@@ -116,6 +144,34 @@ public class DungeonEvents {
             }
         });
 
+        ExileEvents.DUNGEON_DATA_BLOCK_PLACED.register(new EventConsumer<>() {
+            @Override
+            public void accept(ExileEvents.DungeonDataBlockPlaced event) {
+                var blockNbt = event.blockInfo.nbt();
+                if(blockNbt == null) {
+                    ExileLog.get().warn("Dungeon Data Block NBT is null");
+                    return;
+                }
+                String blockMetadata;
+
+                if(blockNbt.contains("metadata")) { // structure block
+                    blockMetadata = blockNbt.getString("metadata");
+                } else if (blockNbt.contains("Command")) { // command block
+                    blockMetadata = blockNbt.getString("Command");
+                } else {
+                    blockMetadata = "unknown";
+                }
+
+                var serverLevel = event.levelAccessor.getServer().getLevel(ResourceKey.create(Registries.DIMENSION, DungeonMain.DIMENSION_KEY));
+                if(DungeonMain.MAP.isInside(DungeonMain.MAIN_DUNGEON_STRUCTURE, serverLevel, event.pos)) {
+                    DungeonMain.ifMapData(serverLevel, event.pos).ifPresent(mapData -> {
+                        var mobSpawnBlockKind = DungeonMapBlocks.getMobSpawnBlockKindFromBlockMetadata(blockMetadata);
+                        mobSpawnBlockKind.ifPresent(mapData::incrementSpawnBlockCountByKind);
+                    });
+                }
+            }
+        });
+
 
         ExileEvents.ON_CHEST_LOOTED.register(new EventConsumer<>() {
             @Override
@@ -125,7 +181,7 @@ public class DungeonEvents {
                 }
                 if (MapDimensions.isMap(event.player.level())) {
                     DungeonMain.ifMapData(event.player.level(), event.pos).ifPresent(x -> {
-                        x.rooms.get(new ChunkPos(event.pos)).chests.done++;
+                        x.lootedChests++;
                     });
                 }
             }
@@ -137,12 +193,10 @@ public class DungeonEvents {
             public void accept(ExileEvents.OnProcessChunkData event) {
                 if (event.struc.guid().equals(DungeonMain.MAIN_DUNGEON_STRUCTURE.guid())) {
                     DungeonMain.ifMapData(event.p.level(), event.cp.getMiddleBlockPosition(5)).ifPresent(x -> {
-                        x.rooms.rooms.done++;
                         x.bonusContents.processedChunks++;
                         if (x.bonusContents.totalGenDungeonChunks < 1) {
                             var built = DungeonMain.MAIN_DUNGEON_STRUCTURE.getMap(event.cp);
                             built.build();
-                            x.rooms.rooms.total = built.builtDungeon.amount;
                             x.bonusContents.totalGenDungeonChunks = built.builtDungeon.amount;
                         }
                     });
