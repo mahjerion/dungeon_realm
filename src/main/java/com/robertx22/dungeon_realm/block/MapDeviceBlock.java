@@ -5,6 +5,7 @@ import com.robertx22.dungeon_realm.api.CanStartMapEvent;
 import com.robertx22.dungeon_realm.api.DungeonExileEvents;
 import com.robertx22.dungeon_realm.api.OnStartMapEvent;
 import com.robertx22.dungeon_realm.block_entity.MapDeviceBE;
+import com.robertx22.dungeon_realm.block_entity.MapDeviceMenu;
 import com.robertx22.dungeon_realm.item.DungeonItemMapData;
 import com.robertx22.dungeon_realm.item.DungeonItemNbt;
 import com.robertx22.dungeon_realm.main.DungeonEntries;
@@ -31,8 +32,6 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.ChestMenu;
-import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
@@ -154,8 +153,8 @@ public class MapDeviceBlock extends BaseEntityBlock {
         return true;
     }
 
-    public static ChestMenu inventory(int pContainerId, Inventory pPlayerInventory, Container pContainer) {
-        return new ChestMenu(MenuType.GENERIC_9x3, pContainerId, pPlayerInventory, pContainer, 3);
+    public static MapDeviceMenu inventory(int pContainerId, Inventory pPlayerInventory, Container pContainer) {
+        return new MapDeviceMenu(pContainerId, pPlayerInventory, pContainer, 3);
     }
 
     @Override
