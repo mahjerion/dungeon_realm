@@ -15,6 +15,7 @@ import net.minecraftforge.common.capabilities.CapabilityToken;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.common.util.INBTSerializable;
 import net.minecraftforge.common.util.LazyOptional;
+import net.minecraftforge.server.ServerLifecycleHooks;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -36,6 +37,11 @@ public class DungeonMapCapability implements ICapabilityProvider, INBTSerializab
         return entity.getServer().overworld().getCapability(INSTANCE).orElse(new DungeonMapCapability(entity));
     }
 
+    public static DungeonMapCapability getFromServer() {
+        return get(ServerLifecycleHooks.getCurrentServer().overworld());
+    }
+
+
     public DungeonWorldData data = new DungeonWorldData();
 
     @Override
@@ -54,7 +60,7 @@ public class DungeonMapCapability implements ICapabilityProvider, INBTSerializab
         try {
 
             LoadSave.Save(data, nbt, "data");
-            
+
         } catch (Exception e) {
             e.printStackTrace();
         }

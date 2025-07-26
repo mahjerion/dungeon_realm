@@ -33,6 +33,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.data.CachedOutput;
 import net.minecraft.data.loot.LootTableProvider;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -94,7 +95,14 @@ public class DungeonMain {
             Arrays.asList(ARENA, UBER_ARENA, REWARD_ROOM),
             new DungeonMobValidator(),
             new MapDimensionConfigDefaults(3, 1)
-    );
+    ) {
+
+        @Override
+        public void clearMapDataOnFolderWipe(MinecraftServer minecraftServer) {
+            
+            DungeonMapCapability.get(minecraftServer.overworld()).data = new DungeonWorldData();
+        }
+    };
 
 
     public DungeonMain() {

@@ -2,7 +2,6 @@ package com.robertx22.dungeon_realm.main;
 
 import com.robertx22.dungeon_realm.capability.DungeonEntityCapability;
 import com.robertx22.dungeon_realm.configs.DungeonConfig;
-import com.robertx22.dungeon_realm.database.data_blocks.mobs.MobMB;
 import com.robertx22.dungeon_realm.database.holders.DungeonMapBlocks;
 import com.robertx22.dungeon_realm.database.holders.DungeonRelicStats;
 import com.robertx22.dungeon_realm.item.DungeonMapGenSettings;
@@ -13,21 +12,19 @@ import com.robertx22.library_of_exile.components.LibMapCap;
 import com.robertx22.library_of_exile.dimension.MapDimensions;
 import com.robertx22.library_of_exile.events.base.EventConsumer;
 import com.robertx22.library_of_exile.events.base.ExileEvents;
-import com.robertx22.library_of_exile.main.ExileLog;
 import com.robertx22.library_of_exile.main.ApiForgeEvents;
+import com.robertx22.library_of_exile.main.ExileLog;
 import com.robertx22.library_of_exile.util.PointData;
 import com.robertx22.library_of_exile.utils.RandomUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.scores.Objective;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 
 import java.util.Optional;
@@ -47,28 +44,6 @@ public class DungeonEvents {
             }
         });
 
-        ExileEvents.LIVING_ENTITY_TICK.register(new EventConsumer<ExileEvents.OnEntityTick>() {
-            @Override
-            public void accept(ExileEvents.OnEntityTick event) {
-                if (event.entity instanceof ServerPlayer p) {
-                    if (!event.entity.level().isClientSide) {
-                        if (p.tickCount % 40 == 0) {
-                            DungeonMain.ifMapData(p.level(), p.blockPosition(), false).ifPresent(x -> {
-                                x.updateMapCompletionRarity(p);
-                            });
-
-                            if(DungeonMain.ifMapData(p.level(), p.blockPosition(), false).isEmpty()) {
-                                var scoreboard = p.getScoreboard();
-                                Objective killCompletionPercentObj = scoreboard.getObjective("completion_percent");
-                                if(killCompletionPercentObj != null) {
-                                    p.getScoreboard().removeObjective(killCompletionPercentObj);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        });
 
         ApiForgeEvents.registerForgeEvent(LivingDeathEvent.class, event -> {
             if (event.getEntity().level().isClientSide) {
@@ -94,13 +69,13 @@ public class DungeonEvents {
                     });
                 }
 
-                if(DungeonEntityCapability.get(mob).data.isDungeonEliteMob) {
+                if (DungeonEntityCapability.get(mob).data.isDungeonEliteMob) {
                     DungeonMain.ifMapData(mob.level(), mob.blockPosition()).ifPresent(x -> {
                         x.eliteKills++;
                     });
                 }
 
-                if(DungeonEntityCapability.get(mob).data.isMiniBossMob) {
+                if (DungeonEntityCapability.get(mob).data.isMiniBossMob) {
                     DungeonMain.ifMapData(mob.level(), mob.blockPosition()).ifPresent(x -> {
                         x.miniBossKills++;
                     });
@@ -148,13 +123,13 @@ public class DungeonEvents {
             @Override
             public void accept(ExileEvents.DungeonDataBlockPlaced event) {
                 var blockNbt = event.blockInfo.nbt();
-                if(blockNbt == null) {
+                if (blockNbt == null) {
                     ExileLog.get().warn("Dungeon Data Block NBT is null");
                     return;
                 }
                 String blockMetadata;
 
-                if(blockNbt.contains("metadata")) { // structure block
+                if (blockNbt.contains("metadata")) { // structure block
                     blockMetadata = blockNbt.getString("metadata");
                 } else if (blockNbt.contains("Command")) { // command block
                     blockMetadata = blockNbt.getString("Command");
@@ -163,7 +138,7 @@ public class DungeonEvents {
                 }
 
                 var serverLevel = event.levelAccessor.getServer().getLevel(ResourceKey.create(Registries.DIMENSION, DungeonMain.DIMENSION_KEY));
-                if(DungeonMain.MAP.isInside(DungeonMain.MAIN_DUNGEON_STRUCTURE, serverLevel, event.pos)) {
+                if (DungeonMain.MAP.isInside(DungeonMain.MAIN_DUNGEON_STRUCTURE, serverLevel, event.pos)) {
                     DungeonMain.ifMapData(serverLevel, event.pos).ifPresent(mapData -> {
                         var mobSpawnBlockKind = DungeonMapBlocks.getMobSpawnBlockKindFromBlockMetadata(blockMetadata);
                         mobSpawnBlockKind.ifPresent(mapData::incrementSpawnBlockCountByKind);
@@ -218,14 +193,16 @@ public class DungeonEvents {
     public static void trySpawnLeagueMechanicIfCan(Level world, BlockPos pos) {
         if (DungeonMain.MAP.isInside(DungeonMain.MAIN_DUNGEON_STRUCTURE, (ServerLevel) world, pos)) {
             var data = DungeonMapCapability.get(world).data.data.getData(DungeonMain.MAIN_DUNGEON_STRUCTURE, pos);
-            float chance = data.bonusContents.calcSpawnChance(pos);
+            if (data != null) {
+                float chance = data.bonusContents.calcSpawnChance(pos);
 
-            if (RandomUtils.roll(chance)) {
-                data.spawnBonusMapContent(world, pos);
+                if (RandomUtils.roll(chance)) {
+                    data.spawnBonusMapContent(world, pos);
+                }
+                var cp = new ChunkPos(pos);
+                var point = new PointData(cp.x, cp.z);
+                data.bonusContents.mechsChunks.add(point);
             }
-            var cp = new ChunkPos(pos);
-            var point = new PointData(cp.x, cp.z);
-            data.bonusContents.mechsChunks.add(point);
         }
     }
 

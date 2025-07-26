@@ -4,6 +4,7 @@ import com.robertx22.dungeon_realm.item.DungeonItemNbt;
 import com.robertx22.dungeon_realm.item.relic.RelicAffixData;
 import com.robertx22.dungeon_realm.item.relic.RelicItemData;
 import com.robertx22.dungeon_realm.main.DungeonEntries;
+import com.robertx22.dungeon_realm.structure.DungeonMapCapability;
 import com.robertx22.library_of_exile.database.relic.stat.ExactRelicStat;
 import com.robertx22.library_of_exile.database.relic.stat.RelicMod;
 import net.minecraft.core.BlockPos;
@@ -25,7 +26,13 @@ public class MapDeviceBE extends BlockEntity implements ContainerListener {
     public boolean gaveMap = false;
     public BlockPos pos = null;
 
+    public String currentWorldUUID = "";
+
     public boolean isActivated() {
+        if (currentWorldUUID.isEmpty() || !currentWorldUUID.equals(DungeonMapCapability.getFromServer().data.data.uuid)) {
+            return false;
+        }
+
         return pos != null;
     }
 
@@ -89,6 +96,8 @@ public class MapDeviceBE extends BlockEntity implements ContainerListener {
         }
 
         nbt.put("inv", inv.createTag());
+        nbt.putString("uid", currentWorldUUID);
+
     }
 
     @Override
@@ -98,8 +107,8 @@ public class MapDeviceBE extends BlockEntity implements ContainerListener {
         if (pTag.contains("spawnpos")) {
             this.pos = BlockPos.of(pTag.getLong("spawnpos"));
         }
-
         inv.fromTag(pTag.getList("inv", 10)); // todo care when porting
+        this.currentWorldUUID = pTag.getString("uid");
     }
 
     // this i think allows me to make sure the inventory + block entity is dirty easily

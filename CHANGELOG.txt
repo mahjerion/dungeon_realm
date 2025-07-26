@@ -1,3 +1,6 @@
-v.1.1.1
+v.1.1.3
 
-- Merged PRs
+- try fix wipe command so it works from server command line (untested)
+- removed the wipe command as its not needed now that its all automatic
+- you shouldnt be able to enter old maps after a world reload/server reboot now
+- might implement a system that checks so it only wipes the dimension if its getting too crowded

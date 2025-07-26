@@ -11,16 +11,12 @@ import com.robertx22.library_of_exile.main.ExileLog;
 import com.robertx22.library_of_exile.utils.RandomUtils;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.scores.Objective;
-import net.minecraft.world.scores.Scoreboard;
-import net.minecraft.world.scores.criteria.ObjectiveCriteria;
 import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.HashMap;
@@ -137,7 +133,7 @@ public class DungeonMapData {
         // for example, if we have 43/40 mob blocks processed
         // and 0/3 elite blocks, we know all blocks have *actually* been processed, but I got the type counts wrong
         // so consider it to be complete if the total of "blocks left" equates to 0
-        if(mobBlocksLeftToProcess()
+        if (mobBlocksLeftToProcess()
                 + packBlocksLeftToProcess()
                 + eliteBlocksLeftToProcess()
                 + elitePackBlocksLeftToProcess()
@@ -154,11 +150,11 @@ public class DungeonMapData {
             return Math.min(rounded, 100);
         } else {
             // Blocks still being processed - assume the worst
-            int maxMobsLeft = ( mobBlocksLeftToProcess() * DungeonConfig.get().MOB_MAX.get() ) +
-                    ( packBlocksLeftToProcess() * DungeonConfig.get().PACK_MOB_MAX.get() ) +
-                    ( eliteBlocksLeftToProcess() * ELITE_KILL_WEIGHT) +
-                    ( elitePackBlocksLeftToProcess() * DungeonConfig.get().PACK_MOB_MAX.get() * ELITE_KILL_WEIGHT) +
-                    ( miniBossBlocksLeftToProcess() * MINI_BOSS_KILL_WEIGHT);
+            int maxMobsLeft = (mobBlocksLeftToProcess() * DungeonConfig.get().MOB_MAX.get()) +
+                    (packBlocksLeftToProcess() * DungeonConfig.get().PACK_MOB_MAX.get()) +
+                    (eliteBlocksLeftToProcess() * ELITE_KILL_WEIGHT) +
+                    (elitePackBlocksLeftToProcess() * DungeonConfig.get().PACK_MOB_MAX.get() * ELITE_KILL_WEIGHT) +
+                    (miniBossBlocksLeftToProcess() * MINI_BOSS_KILL_WEIGHT);
 
             int totalPossibleWeightedKills = mobSpawnCount + (eliteSpawnCount * ELITE_KILL_WEIGHT) + maxMobsLeft;
             int actualWeightedKills = mobKills + (eliteKills * ELITE_KILL_WEIGHT);
@@ -173,37 +169,16 @@ public class DungeonMapData {
 
     // precondition: totalChests > 0, so at least 1 has spawned
     private int calculateLootCompletionPercent() {
-            if(totalChests == 0) return 0;
-            float percentage = (lootedChests / (float) totalChests) * 100f;
-            int rounded = Math.round(percentage);
-            return Math.min(rounded, 100);
+        if (totalChests == 0) return 0;
+        float percentage = (lootedChests / (float) totalChests) * 100f;
+        int rounded = Math.round(percentage);
+        return Math.min(rounded, 100);
     }
 
     public void updateMapCompletionRarity(ServerPlayer player) {
 
         int killCompletionPercent = calculateKillCompletionPercent();
         ExileLog.get().debug(showMapData());
-
-        for (Player p : DungeonMain.MAIN_DUNGEON_STRUCTURE.getAllPlayersInMap(player.level(), player.blockPosition())) {
-
-            Scoreboard scoreboard = p.getScoreboard();
-            Objective completionPercentObjective = scoreboard.getObjective("completion_percent");
-            if(completionPercentObjective == null) {
-                completionPercentObjective = scoreboard.addObjective(
-                        "completion_percent",
-                        ObjectiveCriteria.DUMMY,
-                        Component.literal("Map Stats"),
-                        ObjectiveCriteria.RenderType.INTEGER
-                );
-            }
-
-            scoreboard.getOrCreatePlayerScore("§eKill %", completionPercentObjective).setScore(killCompletionPercent);
-            if(totalChests > 0) {
-                int lootCompletionPercent = calculateLootCompletionPercent();
-                scoreboard.getOrCreatePlayerScore("§bLoot %", completionPercentObjective).setScore(lootCompletionPercent);
-            }
-            scoreboard.setDisplayObjective(Scoreboard.DISPLAY_SLOT_SIDEBAR, completionPercentObjective);
-        }
 
         var rar = LibDatabase.MapFinishRarity().get(current_mob_kill_rarity);
         if (rar.getHigher().isPresent()) {
