@@ -2,33 +2,43 @@ package com.robertx22.dungeon_realm.block_entity;
 
 import com.robertx22.dungeon_realm.item.DungeonItemNbt;
 import com.robertx22.dungeon_realm.item.relic.RelicItemData;
+import com.robertx22.dungeon_realm.main.DungeonMenuTypes;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.Container;
+import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.MenuType;
-import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.inventory.*;
 import net.minecraft.world.item.ItemStack;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class MapDeviceMenu extends AbstractContainerMenu {
-    
     private final Container container;
     private final int containerRows;
+    private final List<MapDeviceSlot> relicSlots;
+
+    public MapDeviceMenu(int containerID, Inventory inventory, FriendlyByteBuf friendlyByteBuf) {
+        this(containerID, inventory, new SimpleContainer(27), 3);
+    }
 
     public MapDeviceMenu(int containerId, Inventory playerInventory, Container container, int rows) {
-        super(MenuType.GENERIC_9x3, containerId);
+        super(DungeonMenuTypes.MAP_DEVICE_MENU_TYPE.get(), containerId);
         this.container = container;
         this.containerRows = rows;
 
         container.startOpen(playerInventory.player);
 
+        relicSlots = new ArrayList<>();
         // Add container slots with custom validation
         int containerSlotIndex = 0;
         for (int row = 0; row < rows; ++row) {
             for (int col = 0; col < 9; ++col) {
-                this.addSlot(new MapDeviceSlot(container, containerSlotIndex, 8 + col * 18, 18 + row * 18));
+                MapDeviceSlot pSlot = new MapDeviceSlot(container, containerSlotIndex, 8 + col * 18, 18 + row * 18);
+                relicSlots.add(pSlot);
+                this.addSlot(pSlot);
                 containerSlotIndex++;
             }
         }
@@ -140,5 +150,20 @@ public class MapDeviceMenu extends AbstractContainerMenu {
                 return true; // Reject on error
             }
         }
+    }
+
+    public List<RelicItemData> getRelics() {
+        List<RelicItemData> all = new ArrayList<>();
+        for (var slot : relicSlots) {
+            ItemStack stack = slot.getItem();
+            try {
+                if (!stack.isEmpty() && DungeonItemNbt.RELIC.has(stack)) {
+                    all.add(DungeonItemNbt.RELIC.loadFrom(stack));
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return all;
     }
 }
