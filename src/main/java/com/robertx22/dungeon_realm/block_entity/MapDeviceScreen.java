@@ -78,11 +78,13 @@ public class MapDeviceScreen extends AbstractContainerScreen<MapDeviceMenu> impl
         }
 
         Map<String, RelicStatWithValue> mappedGroupedRelicStats = getRelicStatWithValueMap(relics);
+        var sortedKeys = mappedGroupedRelicStats.keySet().stream().sorted(Comparator.comparingDouble(i -> mappedGroupedRelicStats.get(i).value)).toList();
 
         Font minecraftFont = Minecraft.getInstance().font;
         var maxLineWidth = 0;
         List<Component> lines = new ArrayList<>();
-        for (var relicStatWithValue : mappedGroupedRelicStats.values()) {
+        for (int i = sortedKeys.size() - 1; i >= 0; i--){
+            var relicStatWithValue = mappedGroupedRelicStats.get(sortedKeys.get(i));
             var stat = relicStatWithValue.stat;
             var value = relicStatWithValue.value;
             MutableComponent statText = stat.getTooltip(value);
@@ -93,7 +95,7 @@ public class MapDeviceScreen extends AbstractContainerScreen<MapDeviceMenu> impl
 
         int startY = (this.height - this.imageHeight) / 2;
         drawStatsBackground(pGuiGraphics, maxLineWidth, startY, lines.size());
-        drawStats(pGuiGraphics, lines, minecraftFont, startY);
+        drawStats(pGuiGraphics, lines, minecraftFont, startY, maxLineWidth);
     }
 
     private void drawStatsBackground(GuiGraphics pGuiGraphics, int maxLineWidth, int startY, int size) {
@@ -110,11 +112,14 @@ public class MapDeviceScreen extends AbstractContainerScreen<MapDeviceMenu> impl
         pGuiGraphics.fill(backgroundStartX, startY, backgroundEndX, backgroundEndY, 0x80000000);
     }
 
-    private void drawStats(GuiGraphics pGuiGraphics, List<Component> lines, Font minecraftFont, int startY) {
+    private void drawStats(GuiGraphics pGuiGraphics, List<Component> lines, Font minecraftFont, int startY, int maxLineWidth) {
         var y = 2;
-        int centeredX = this.width / 2;
+        int startX = (this.width - this.imageWidth) / 2;
+        if (maxLineWidth > this.imageWidth) {
+            startX -= (maxLineWidth - this.imageWidth) / 2;
+        }
         for (var line : lines) {
-            pGuiGraphics.drawCenteredString(minecraftFont, line, centeredX, startY + y, 0xFFFFFF);
+            pGuiGraphics.drawString(minecraftFont, line, startX, startY + y, 0xFFFFFF);
             y += LINE_HEIGHT;
         }
     }
