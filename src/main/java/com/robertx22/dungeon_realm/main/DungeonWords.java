@@ -20,7 +20,8 @@ public enum DungeonWords implements ITranslated {
     RELIC_ITEM_INFO("Relics are placed inside the Map Device"),
     RELIC_ITEM_INFO2("A Relic Key Item opens the Map Device"),
     RELIC_MAX_COUNT("Maximum [%1$s] of this type can be used"),
-    CREATIVE_TAB("Dungeon Realm");
+    CREATIVE_TAB("Dungeon Realm"),
+    SHOW_RELIC_STATS_HINT("Press '%1$s' to display all Relic Stats");
 
     public String name;
 

@@ -2,6 +2,7 @@ package com.robertx22.dungeon_realm.main;
 
 import com.google.common.collect.Lists;
 import com.robertx22.dungeon_realm.api.DungeonExileEvents;
+import com.robertx22.dungeon_realm.block_entity.MapDeviceScreen;
 import com.robertx22.dungeon_realm.capability.DungeonEntityCapability;
 import com.robertx22.dungeon_realm.configs.DungeonConfig;
 import com.robertx22.dungeon_realm.database.DungeonDatabase;
@@ -45,6 +46,8 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.event.RenderGuiOverlayEvent;
+import net.minecraftforge.client.event.ScreenEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.data.event.GatherDataEvent;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
@@ -59,6 +62,7 @@ import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.ForgeRegistries;
+import org.lwjgl.opengl.GL11;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
