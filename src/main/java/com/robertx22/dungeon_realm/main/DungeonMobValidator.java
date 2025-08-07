@@ -7,10 +7,10 @@ import net.minecraft.world.entity.LivingEntity;
 public class DungeonMobValidator extends MobValidator {
     @Override
     public boolean isValidMob(LivingEntity en) {
-        if (!DungeonEntityCapability.get(en).data.isDungeonMob) {
-            return false;
-        }
-
-        return true;
+        return DungeonEntityCapability.get(en).data.isDungeonMob ||
+                DungeonEntityCapability.get(en).data.isDungeonEliteMob ||
+                DungeonEntityCapability.get(en).data.isMiniBossMob ||
+                DungeonEntityCapability.get(en).data.isFinalMapBoss ||
+                DungeonEntityCapability.get(en).data.isUberBoss;
     }
 }
