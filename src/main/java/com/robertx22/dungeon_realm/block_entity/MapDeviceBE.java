@@ -65,7 +65,7 @@ public class MapDeviceBE extends BlockEntity implements ContainerListener {
                     var data = DungeonItemNbt.RELIC.loadFrom(stack);
                     int cur = map.getOrDefault(data.type, 0) + 1;
                     map.put(data.type, cur);
-                    if (cur < data.getType().max_equipped) {
+                    if (cur <= data.getType().max_equipped) {
                         all.add(data);
                     } else {
                         int a = 5;
