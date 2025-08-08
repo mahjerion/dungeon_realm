@@ -8,6 +8,7 @@ import com.robertx22.dungeon_realm.item.DungeonMapItem;
 import com.robertx22.dungeon_realm.item.TeleportBackItem;
 import com.robertx22.library_of_exile.database.relic.relic_type.RelicItem;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
@@ -25,6 +26,7 @@ public class DungeonEntries {
     public static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, DungeonMain.MODID);
     public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(ForgeRegistries.BLOCK_ENTITY_TYPES, DungeonMain.MODID);
     public static final DeferredRegister<CreativeModeTab> CREATIVE_TAB = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, DungeonMain.MODID);
+    public static final DeferredRegister<MenuType<?>> MENUS = DeferredRegister.create(ForgeRegistries.MENU_TYPES, DungeonMain.MODID);
 
     // blocks
     public static RegistryObject<MapDeviceBlock> MAP_DEVICE_BLOCK = BLOCKS.register("map_device", () -> new MapDeviceBlock());
@@ -52,6 +54,7 @@ public class DungeonEntries {
         CREATIVE_TAB.register(bus);
         BLOCKS.register(bus);
         BLOCK_ENTITIES.register(bus);
+        DungeonMenuTypes.register(bus);
     }
 
     public static void init() {
