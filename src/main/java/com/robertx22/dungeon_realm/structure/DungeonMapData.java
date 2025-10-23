@@ -175,7 +175,7 @@ public class DungeonMapData {
         return Math.min(rounded, 100);
     }
 
-    public void updateMapCompletionRarity(ServerPlayer player) {
+    public void updateMapCompletionRarity(ServerLevel level, BlockPos pos) {
 
         int killCompletionPercent = calculateKillCompletionPercent();
         ExileLog.get().debug(showMapData());
@@ -187,7 +187,7 @@ public class DungeonMapData {
             if (killCompletionPercent >= higher.perc_to_unlock) {
                 current_mob_kill_rarity = higher.GUID();
 
-                for (Player p : DungeonMain.MAIN_DUNGEON_STRUCTURE.getAllPlayersInMap(player.level(), player.blockPosition())) {
+                for (Player p : DungeonMain.MAIN_DUNGEON_STRUCTURE.getAllPlayersInMap(level, pos)) {
                     var rartext = getFinishRarity().getTranslation(TranslationType.NAME).getTranslatedName()
                             .withStyle(getFinishRarity().textFormatting());
 

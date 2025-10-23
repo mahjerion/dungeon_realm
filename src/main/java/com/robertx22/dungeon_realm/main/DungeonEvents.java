@@ -1,6 +1,7 @@
 package com.robertx22.dungeon_realm.main;
 
 import com.robertx22.dungeon_realm.capability.DungeonEntityCapability;
+import com.robertx22.dungeon_realm.capability.DungeonEntityData;
 import com.robertx22.dungeon_realm.configs.DungeonConfig;
 import com.robertx22.dungeon_realm.database.holders.DungeonMapBlocks;
 import com.robertx22.dungeon_realm.database.holders.DungeonRelicStats;
@@ -51,48 +52,49 @@ public class DungeonEvents {
             }
             LivingEntity mob = event.getEntity();
 
-            if (MapDimensions.isMap(mob.level())) {
+            Level level = mob.level();
+            BlockPos pos = mob.blockPosition();
+            if (MapDimensions.isMap(level)) {
 
-                if (DungeonEntityCapability.get(mob).data.isFinalMapBoss) {
-                    if (MapDimensions.isMap(mob.level())) {
-                        mob.level().setBlock(mob.blockPosition(), DungeonEntries.REWARD_TELEPORT.get().defaultBlockState(), Block.UPDATE_ALL);
-                        DungeonMain.REWARD_ROOM.generateManually((ServerLevel) mob.level(), mob.chunkPosition());
-                        // todo drop another map
-                    }
+                DungeonEntityData dungeonEntityData = DungeonEntityCapability.get(mob).data;
+                if (dungeonEntityData.isFinalMapBoss) {
+                    level.setBlock(pos, DungeonEntries.REWARD_TELEPORT.get().defaultBlockState(), Block.UPDATE_ALL);
+                    DungeonMain.REWARD_ROOM.generateManually((ServerLevel) level, mob.chunkPosition());
+                    // todo drop another map
                 }
 
                 // precondition: `isDungeonMob` and `isDungeonEliteMob` should be distinct
                 // both should not exist on the same mob
-                if (DungeonEntityCapability.get(mob).data.isDungeonMob) {
-                    DungeonMain.ifMapData(mob.level(), mob.blockPosition()).ifPresent(x -> {
-                        x.mobKills++;
-                    });
-                }
+                DungeonMain.ifMapData(level, pos).ifPresent(x -> {
+                    if (dungeonEntityData.isDungeonMob) {
+                            x.mobKills++;
+                    }
 
-                if (DungeonEntityCapability.get(mob).data.isDungeonEliteMob) {
-                    DungeonMain.ifMapData(mob.level(), mob.blockPosition()).ifPresent(x -> {
+                    if (dungeonEntityData.isDungeonEliteMob) {
                         x.eliteKills++;
-                    });
-                }
+                    }
 
-                if (DungeonEntityCapability.get(mob).data.isMiniBossMob) {
-                    DungeonMain.ifMapData(mob.level(), mob.blockPosition()).ifPresent(x -> {
+                    if (dungeonEntityData.isMiniBossMob) {
                         x.miniBossKills++;
-                    });
-                }
+                    }
+
+                    x.updateMapCompletionRarity((ServerLevel) level, pos);
+                });
+
+
 
                 // hm, 3 relics per uber and 1 per map boss is ok?
-                if (DungeonEntityCapability.get(mob).data.isUberBoss) {
+                if (dungeonEntityData.isUberBoss) {
                     for (int i = 0; i < 3; i++) {
                         mob.spawnAtLocation(RelicGenerator.randomRelicItem(Optional.empty(), new RelicGenerator.Settings()));
                     }
                 }
 
-                if (DungeonEntityCapability.get(mob).data.isFinalMapBoss) {
+                if (dungeonEntityData.isFinalMapBoss) {
 
                     mob.spawnAtLocation(RelicGenerator.randomRelicItem(Optional.empty(), new RelicGenerator.Settings()));
 
-                    var data = LibMapCap.getData(mob.level(), mob.blockPosition());
+                    var data = LibMapCap.getData(level, pos);
 
                     float chance = DungeonConfig.get().UBER_FRAG_DROPRATE.get().floatValue();
 
@@ -106,7 +108,7 @@ public class DungeonEvents {
 
                     // todo this isn't ideal
                     if (event.getSource().getEntity() instanceof Player p) {
-                        var libdata = LibMapCap.getData(mob.level(), mob.blockPosition());
+                        var libdata = LibMapCap.getData(level, pos);
                         if (libdata != null) {
                             float mapchance = libdata.relicStats.get(DungeonRelicStats.INSTANCE.BONUS_MAP_ITEM_FROM_BOSS_CHANCE);
                             if (RandomUtils.roll(mapchance)) {
