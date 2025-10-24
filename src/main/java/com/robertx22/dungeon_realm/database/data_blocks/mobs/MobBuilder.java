@@ -9,6 +9,7 @@ import com.robertx22.dungeon_realm.main.DungeonMain;
 import com.robertx22.library_of_exile.database.map_data_block.MapDataBlock;
 import com.robertx22.library_of_exile.utils.geometry.MyPosition;
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
@@ -67,6 +68,8 @@ public class MobBuilder {
                 x.miniBossSpawnCount += amount;
                 x.processedMiniBossDataBlockCount++;
             }
+
+            x.updateMapCompletionRarity((ServerLevel) world, p);
         });
 
         return list;
