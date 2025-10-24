@@ -1,6 +1,7 @@
 package com.robertx22.dungeon_realm.main;
 
 import com.robertx22.dungeon_realm.capability.DungeonEntityCapability;
+import com.robertx22.dungeon_realm.capability.DungeonEntityData;
 import com.robertx22.dungeon_realm.configs.DungeonConfig;
 import com.robertx22.dungeon_realm.database.holders.DungeonMapBlocks;
 import com.robertx22.dungeon_realm.database.holders.DungeonRelicStats;
@@ -25,9 +26,13 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.scores.Objective;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;
 
 import java.util.Optional;
+
+import static com.robertx22.dungeon_realm.main.DungeonMain.DIMENSION_KEY;
 
 public class DungeonEvents {
 
@@ -44,6 +49,27 @@ public class DungeonEvents {
             }
         });
 
+        ApiForgeEvents.registerForgeEvent(PlayerEvent.PlayerRespawnEvent.class, event -> {
+            var p = event.getEntity();
+            Level level = p.level();
+            BlockPos pos = p.blockPosition();
+            clearScoreboard(level, pos, p);
+        });
+
+        ApiForgeEvents.registerForgeEvent(PlayerEvent.PlayerChangedDimensionEvent.class, event -> {
+            var p = event.getEntity();
+            Level level = p.level();
+            BlockPos pos = p.blockPosition();
+            if (event.getFrom().location().compareTo(DIMENSION_KEY) == 0) {
+                clearScoreboard(level, pos, p);
+            }
+
+            if (event.getTo().location().compareTo(DIMENSION_KEY) == 0) {
+                DungeonMain.ifMapData(level, pos, false).ifPresent(x -> {
+                    x.initScoreboard(p);
+                });
+            }
+        });
 
         ApiForgeEvents.registerForgeEvent(LivingDeathEvent.class, event -> {
             if (event.getEntity().level().isClientSide) {
@@ -51,48 +77,49 @@ public class DungeonEvents {
             }
             LivingEntity mob = event.getEntity();
 
-            if (MapDimensions.isMap(mob.level())) {
+            Level level = mob.level();
+            BlockPos pos = mob.blockPosition();
+            if (MapDimensions.isMap(level)) {
 
-                if (DungeonEntityCapability.get(mob).data.isFinalMapBoss) {
-                    if (MapDimensions.isMap(mob.level())) {
-                        mob.level().setBlock(mob.blockPosition(), DungeonEntries.REWARD_TELEPORT.get().defaultBlockState(), Block.UPDATE_ALL);
-                        DungeonMain.REWARD_ROOM.generateManually((ServerLevel) mob.level(), mob.chunkPosition());
-                        // todo drop another map
-                    }
+                DungeonEntityData dungeonEntityData = DungeonEntityCapability.get(mob).data;
+                if (dungeonEntityData.isFinalMapBoss) {
+                    level.setBlock(pos, DungeonEntries.REWARD_TELEPORT.get().defaultBlockState(), Block.UPDATE_ALL);
+                    DungeonMain.REWARD_ROOM.generateManually((ServerLevel) level, mob.chunkPosition());
+                    // todo drop another map
                 }
 
                 // precondition: `isDungeonMob` and `isDungeonEliteMob` should be distinct
                 // both should not exist on the same mob
-                if (DungeonEntityCapability.get(mob).data.isDungeonMob) {
-                    DungeonMain.ifMapData(mob.level(), mob.blockPosition()).ifPresent(x -> {
-                        x.mobKills++;
-                    });
-                }
+                DungeonMain.ifMapData(level, pos).ifPresent(x -> {
+                    if (dungeonEntityData.isDungeonMob) {
+                            x.mobKills++;
+                    }
 
-                if (DungeonEntityCapability.get(mob).data.isDungeonEliteMob) {
-                    DungeonMain.ifMapData(mob.level(), mob.blockPosition()).ifPresent(x -> {
+                    if (dungeonEntityData.isDungeonEliteMob) {
                         x.eliteKills++;
-                    });
-                }
+                    }
 
-                if (DungeonEntityCapability.get(mob).data.isMiniBossMob) {
-                    DungeonMain.ifMapData(mob.level(), mob.blockPosition()).ifPresent(x -> {
+                    if (dungeonEntityData.isMiniBossMob) {
                         x.miniBossKills++;
-                    });
-                }
+                    }
+
+                    x.updateMapCompletionRarity((ServerLevel) level, pos);
+                });
+
+
 
                 // hm, 3 relics per uber and 1 per map boss is ok?
-                if (DungeonEntityCapability.get(mob).data.isUberBoss) {
+                if (dungeonEntityData.isUberBoss) {
                     for (int i = 0; i < 3; i++) {
                         mob.spawnAtLocation(RelicGenerator.randomRelicItem(Optional.empty(), new RelicGenerator.Settings()));
                     }
                 }
 
-                if (DungeonEntityCapability.get(mob).data.isFinalMapBoss) {
+                if (dungeonEntityData.isFinalMapBoss) {
 
                     mob.spawnAtLocation(RelicGenerator.randomRelicItem(Optional.empty(), new RelicGenerator.Settings()));
 
-                    var data = LibMapCap.getData(mob.level(), mob.blockPosition());
+                    var data = LibMapCap.getData(level, pos);
 
                     float chance = DungeonConfig.get().UBER_FRAG_DROPRATE.get().floatValue();
 
@@ -106,7 +133,7 @@ public class DungeonEvents {
 
                     // todo this isn't ideal
                     if (event.getSource().getEntity() instanceof Player p) {
-                        var libdata = LibMapCap.getData(mob.level(), mob.blockPosition());
+                        var libdata = LibMapCap.getData(level, pos);
                         if (libdata != null) {
                             float mapchance = libdata.relicStats.get(DungeonRelicStats.INSTANCE.BONUS_MAP_ITEM_FROM_BOSS_CHANCE);
                             if (RandomUtils.roll(mapchance)) {
@@ -137,7 +164,7 @@ public class DungeonEvents {
                     blockMetadata = "unknown";
                 }
 
-                var serverLevel = event.levelAccessor.getServer().getLevel(ResourceKey.create(Registries.DIMENSION, DungeonMain.DIMENSION_KEY));
+                var serverLevel = event.levelAccessor.getServer().getLevel(ResourceKey.create(Registries.DIMENSION, DIMENSION_KEY));
                 if (DungeonMain.MAP.isInside(DungeonMain.MAIN_DUNGEON_STRUCTURE, serverLevel, event.pos)) {
                     DungeonMain.ifMapData(serverLevel, event.pos).ifPresent(mapData -> {
                         var mobSpawnBlockKind = DungeonMapBlocks.getMobSpawnBlockKindFromBlockMetadata(blockMetadata);
@@ -151,12 +178,15 @@ public class DungeonEvents {
         ExileEvents.ON_CHEST_LOOTED.register(new EventConsumer<>() {
             @Override
             public void accept(ExileEvents.OnChestLooted event) {
-                if (event.player.level().isClientSide) {
+                Level level = event.player.level();
+                if (level.isClientSide) {
                     return;
                 }
-                if (MapDimensions.isMap(event.player.level())) {
-                    DungeonMain.ifMapData(event.player.level(), event.pos).ifPresent(x -> {
+                if (MapDimensions.isMap(level)) {
+                    BlockPos pos = event.pos;
+                    DungeonMain.ifMapData(level, pos).ifPresent(x -> {
                         x.lootedChests++;
+                        x.updateMapLootCompletion((ServerLevel) level, pos);
                     });
                 }
             }
@@ -187,6 +217,16 @@ public class DungeonEvents {
                 }
             }
         });
+    }
+
+    private static void clearScoreboard(Level level, BlockPos pos, Player p) {
+        if(DungeonMain.ifMapData(level, pos, false).isEmpty()) {
+            var scoreboard = p.getScoreboard();
+            Objective killCompletionPercentObj = scoreboard.getObjective("completion_percent");
+            if(killCompletionPercentObj != null) {
+                p.getScoreboard().removeObjective(killCompletionPercentObj);
+            }
+        }
     }
 
     // we're only spawning bonus content in the main map dim+structure
