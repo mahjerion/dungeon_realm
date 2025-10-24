@@ -9,6 +9,7 @@ import com.robertx22.library_of_exile.util.wiki.WikiEntry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
@@ -40,6 +41,7 @@ public class MapChestMB extends MapDataBlock {
         createChest(world, pos, isTrapped, table);
         DungeonMain.ifMapData(world, pos).ifPresent(x -> {
             x.totalChests++;
+            x.updateMapLootCompletion((ServerLevel) world, pos);
         });
     }
 
