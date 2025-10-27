@@ -49,6 +49,7 @@ public class MapTooltip extends TooltipItem {
             ));
         });
 
+        b.add(x -> new ExileTooltipPart(TooltipOrder.FIRST, DungeonWords.MAP_LAYOUT.get(map.dungeon).withStyle(ChatFormatting.GRAY, ChatFormatting.GREEN)));
 
         return b.build();
     }

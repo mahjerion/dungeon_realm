@@ -108,6 +108,7 @@ public class MapDeviceBlock extends BaseEntityBlock {
             data.item = map;
             data.x = start.x;
             data.z = start.z;
+            data.dungeon = map.dungeon;
 
             be.pos = pos;
             be.currentWorldUUID = DungeonMapCapability.getFromServer().data.data.uuid;

@@ -2,7 +2,9 @@ package com.robertx22.dungeon_realm.item;
 
 import com.robertx22.dungeon_realm.api.DungeonExileEvents;
 import com.robertx22.dungeon_realm.api.OnGenerateNewMapItemEvent;
+import com.robertx22.dungeon_realm.database.DungeonDatabase;
 import com.robertx22.dungeon_realm.main.DungeonEntries;
+import com.robertx22.library_of_exile.utils.RandomUtils;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
@@ -34,9 +36,12 @@ public class DungeonMapItem extends Item {
 
 
         var data = new DungeonItemMapData();
-
-
+        data.dungeon = GetRandomDungeonGUID();
         return data;
 
+    }
+
+    public static String GetRandomDungeonGUID() {
+        return RandomUtils.weightedRandom(DungeonDatabase.Dungeons().getFilterWrapped(i -> true).list).id;
     }
 }

@@ -48,6 +48,7 @@ public class DungeonMapData {
     public int processedEliteDataBlockCount = 0;
     public int processedElitePackDataBlockCount = 0;
     public int processedMiniBossDataBlockCount = 0;
+    public String dungeon;
 
     private int mobBlocksLeftToProcess() {
         return mobDataBlockCount - processedMobDataBlockCount;

@@ -53,6 +53,7 @@ import net.minecraftforge.data.event.GatherDataEvent;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
+import net.minecraftforge.event.server.ServerStartedEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.ModLoadingContext;
@@ -72,6 +73,8 @@ import java.util.function.Consumer;
 
 @Mod("dungeon_realm")
 public class DungeonMain {
+    public static MinecraftServer server;
+
     public static boolean RUN_DEV_TOOLS = false;
 
     public static String MODID = "dungeon_realm";
@@ -219,6 +222,11 @@ public class DungeonMain {
         });
 
         DungeonExileEvents.CAN_ENTER_MAP.register(new NeedPearlListener());
+
+        ApiForgeEvents.registerForgeEvent(ServerStartedEvent.class, event -> {
+            server = event.getServer();
+        });
+
         LOG.info("Dungeon Realm loaded.");
     }
 
