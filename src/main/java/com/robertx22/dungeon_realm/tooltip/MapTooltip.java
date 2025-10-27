@@ -58,11 +58,11 @@ public class MapTooltip extends TooltipItem {
         return b.build();
     }
 
-    private static @NotNull MutableComponent MapHasUber() {
+    public static @NotNull MutableComponent MapHasUber() {
         return DungeonWords.MAP_HAS_UBER_ARENA.get().withStyle(ChatFormatting.RED, ChatFormatting.BOLD);
     }
 
-    private static @NotNull MutableComponent MapLayoutName(String dungeon) {
+    public static @NotNull MutableComponent MapLayoutName(String dungeon) {
         return DungeonWords.MAP_LAYOUT.get(Component.translatable(MapGUID(dungeon)).withStyle(ChatFormatting.GREEN)).withStyle(ChatFormatting.GRAY);
     }
 }
