@@ -23,6 +23,29 @@ public enum DungeonWords implements ITranslated {
     CREATIVE_TAB("Dungeon Realm"),
     SHOW_RELIC_STATS_HINT("Press '%1$s' to display all Relic Stats"),
     MAP_LAYOUT("Map layout: %1$s"),
+    MAP_NAME_BASTION("Bastion"),
+    MAP_NAME_BRICK("Brick"),
+    MAP_NAME_CEMENT("Cement"),
+    MAP_NAME_END("The End"),
+    MAP_NAME_IT("IT"),
+    MAP_NAME_MINE("Mine"),
+    MAP_NAME_MISC("Misc"),
+    MAP_NAME_MOSSY_BRICK("Mossy Brick"),
+    MAP_NAME_NATURE("Nature"),
+    MAP_NAME_NETHER("Nether"),
+    MAP_NAME_NIGHT_TERROR("Night Terror"),
+    MAP_NAME_PYRAMID("Pyramid"),
+    MAP_NAME_SANDSTONE("Sandstone"),
+    MAP_NAME_SEWER2("Sewer 2"),
+    MAP_NAME_SEWERS("Sewers"),
+    MAP_NAME_SPIDER_NEST("Spider Nest"),
+    MAP_NAME_SPRUCE_MANSION("Spruce Mansion"),
+    MAP_NAME_STEAMPUNK("Steampunk"),
+    MAP_NAME_STONE_BRICK("Stone Brick"),
+    MAP_NAME_TENT("Tent"),
+    MAP_NAME_TEST("Test"),
+    MAP_NAME_WARPED("Warped"),
+    MAP_NAME_WN("WN"),
     ;
 
     public String name;
@@ -43,5 +66,9 @@ public enum DungeonWords implements ITranslated {
     @Override
     public String GUID() {
         return name();
+    }
+
+    public static String MapGUID(String name) {
+        return DungeonMain.MODID + ".words.map_name_" + name.toLowerCase(Locale.ROOT);
     }
 }

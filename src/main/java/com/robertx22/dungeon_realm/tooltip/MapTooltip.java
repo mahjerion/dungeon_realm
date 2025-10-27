@@ -9,10 +9,14 @@ import com.robertx22.library_of_exile.tooltip.order.ExileTooltipPart;
 import com.robertx22.library_of_exile.tooltip.order.TooltipOrder;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.item.ItemStack;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 import java.util.List;
+
+import static com.robertx22.dungeon_realm.main.DungeonWords.MapGUID;
 
 public class MapTooltip extends TooltipItem {
     public static MapTooltip DEFAULT = new MapTooltip(ItemStack.EMPTY, null);
@@ -39,7 +43,7 @@ public class MapTooltip extends TooltipItem {
 
         if (map.uber) {
             b.add(x -> {
-                return new ExileTooltipPart(TooltipOrder.LATE, DungeonWords.MAP_HAS_UBER_ARENA.get().withStyle(ChatFormatting.RED, ChatFormatting.BOLD));
+                return new ExileTooltipPart(TooltipOrder.LATE, MapHasUber());
             });
         }
         b.add(x -> {
@@ -49,8 +53,16 @@ public class MapTooltip extends TooltipItem {
             ));
         });
 
-        b.add(x -> new ExileTooltipPart(TooltipOrder.FIRST, DungeonWords.MAP_LAYOUT.get(map.dungeon).withStyle(ChatFormatting.GRAY, ChatFormatting.GREEN)));
+        b.add(x -> new ExileTooltipPart(TooltipOrder.FIRST, MapLayoutName(map.dungeon)));
 
         return b.build();
+    }
+
+    private static @NotNull MutableComponent MapHasUber() {
+        return DungeonWords.MAP_HAS_UBER_ARENA.get().withStyle(ChatFormatting.RED, ChatFormatting.BOLD);
+    }
+
+    private static @NotNull MutableComponent MapLayoutName(String dungeon) {
+        return DungeonWords.MAP_LAYOUT.get(Component.translatable(MapGUID(dungeon)).withStyle(ChatFormatting.GREEN)).withStyle(ChatFormatting.GRAY);
     }
 }
