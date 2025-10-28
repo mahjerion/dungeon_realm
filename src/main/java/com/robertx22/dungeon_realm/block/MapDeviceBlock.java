@@ -111,7 +111,7 @@ public class MapDeviceBlock extends BaseEntityBlock {
             data.z = start.z;
             data.dungeon = map.dungeon;
             if (data.dungeon == null || data.dungeon.isEmpty()) {
-                data.dungeon = DungeonMapItem.GetRandomDungeonGUID();
+                data.dungeon = DungeonMapItem.GetRandomDungeonGUID(); //TODO: so this is just backwards support, but apparently we can never remove it to support old maps without predefined dungeon...
             }
 
             be.pos = pos;
