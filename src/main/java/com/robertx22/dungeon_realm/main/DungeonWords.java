@@ -46,6 +46,7 @@ public enum DungeonWords implements ITranslated {
     MAP_NAME_TEST("Test"),
     MAP_NAME_WARPED("Warped"),
     MAP_NAME_WN("WN"),
+    MAP_NAME_UNDEFINED("<undefined>"),
     ;
 
     public String name;
@@ -69,6 +70,9 @@ public enum DungeonWords implements ITranslated {
     }
 
     public static String MapGUID(String name) {
+        if (name == null) {
+            name = "undefined";
+        }
         return DungeonMain.MODID + ".words.map_name_" + name.toLowerCase(Locale.ROOT);
     }
 }
