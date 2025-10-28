@@ -8,6 +8,7 @@ import com.robertx22.dungeon_realm.block_entity.MapDeviceBE;
 import com.robertx22.dungeon_realm.block_entity.MapDeviceMenu;
 import com.robertx22.dungeon_realm.item.DungeonItemMapData;
 import com.robertx22.dungeon_realm.item.DungeonItemNbt;
+import com.robertx22.dungeon_realm.item.DungeonMapItem;
 import com.robertx22.dungeon_realm.main.DungeonEntries;
 import com.robertx22.dungeon_realm.main.DungeonMain;
 import com.robertx22.dungeon_realm.main.DungeonWords;
@@ -109,6 +110,9 @@ public class MapDeviceBlock extends BaseEntityBlock {
             data.x = start.x;
             data.z = start.z;
             data.dungeon = map.dungeon;
+            if (data.dungeon == null || data.dungeon.isEmpty()) {
+                data.dungeon = DungeonMapItem.GetRandomDungeonGUID();
+            }
 
             be.pos = pos;
             be.currentWorldUUID = DungeonMapCapability.getFromServer().data.data.uuid;

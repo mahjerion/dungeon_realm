@@ -32,11 +32,15 @@ public class DungeonMapStructure extends DungeonStructure {
     public DungeonBuilder getMap(ChunkPos cp) {
         var serverLevel = DungeonMain.server.getLevel(ResourceKey.create(Registries.DIMENSION, DIMENSION_KEY));
         AtomicReference<String> mapDungeon = new AtomicReference<>();
+        var start = getStartChunkPos(cp);
         DungeonMain.ifMapData(serverLevel, cp.getMiddleBlockPosition(5)).ifPresentOrElse(
                 (x) -> mapDungeon.set(x.dungeon),
-                () -> mapDungeon.set(DungeonMapItem.GetRandomDungeonGUID())
+                () -> {
+                    var rand = MapGenerationUTIL.createRandom(start);
+                    String randomDungeon = RandomUtils.weightedRandom(DungeonDatabase.Dungeons().getFilterWrapped(i -> true).list, rand.nextDouble()).id;
+                    mapDungeon.set(randomDungeon);
+                }
         );
-        var start = getStartChunkPos(cp);
 
         DungeonBuilder b = new DungeonBuilder(dungeonSettings(start, mapDungeon.get()));
         return b;
