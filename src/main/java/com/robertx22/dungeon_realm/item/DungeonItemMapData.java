@@ -15,6 +15,7 @@ public class DungeonItemMapData {
     public int bonus_contents = 1;
 
     public boolean uber = false;
+    public String dungeon;
 
 
     public ChunkPos getOrSetStartPos(Level world, ItemStack stack) {

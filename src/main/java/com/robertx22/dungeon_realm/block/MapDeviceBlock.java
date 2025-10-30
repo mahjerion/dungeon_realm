@@ -8,6 +8,7 @@ import com.robertx22.dungeon_realm.block_entity.MapDeviceBE;
 import com.robertx22.dungeon_realm.block_entity.MapDeviceMenu;
 import com.robertx22.dungeon_realm.item.DungeonItemMapData;
 import com.robertx22.dungeon_realm.item.DungeonItemNbt;
+import com.robertx22.dungeon_realm.item.DungeonMapItem;
 import com.robertx22.dungeon_realm.main.DungeonEntries;
 import com.robertx22.dungeon_realm.main.DungeonMain;
 import com.robertx22.dungeon_realm.main.DungeonWords;
@@ -108,6 +109,10 @@ public class MapDeviceBlock extends BaseEntityBlock {
             data.item = map;
             data.x = start.x;
             data.z = start.z;
+            data.dungeon = map.dungeon;
+            if (data.dungeon == null || data.dungeon.isEmpty()) {
+                data.dungeon = DungeonMapItem.GetRandomDungeonGUID(); //TODO: so this is just backwards support, but apparently we can never remove it to support old maps without predefined dungeon...
+            }
 
             be.pos = pos;
             be.currentWorldUUID = DungeonMapCapability.getFromServer().data.data.uuid;
