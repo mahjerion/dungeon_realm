@@ -14,7 +14,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -28,6 +27,7 @@ import java.util.HashMap;
 import java.util.stream.Collectors;
 
 public class DungeonMapData {
+    public static final String RARITY_TIER = "Rarity Tier";
     // todo
 
     public MapBonusContentsData bonusContents = new MapBonusContentsData();
@@ -182,16 +182,8 @@ public class DungeonMapData {
     }
 
     public void updateMapCompletionRarity(ServerLevel level, BlockPos pos) {
-
         int killCompletionPercent = calculateKillCompletionPercent();
         ExileLog.get().debug(showMapData());
-
-        for (Player p : DungeonMain.MAIN_DUNGEON_STRUCTURE.getAllPlayersInMap(level, pos)) {
-            Scoreboard scoreboard = p.getScoreboard();
-            Objective completionPercentObjective = getCompletionPercentObjective(scoreboard);
-            showCompletionScore(scoreboard, completionPercentObjective, killCompletionPercent);
-            positionScoreboard(scoreboard, completionPercentObjective);
-        }
 
         var rar = LibDatabase.MapFinishRarity().get(current_mob_kill_rarity);
         if (rar.getHigher().isPresent()) {
@@ -199,14 +191,43 @@ public class DungeonMapData {
 
             if (killCompletionPercent >= higher.perc_to_unlock) {
                 current_mob_kill_rarity = higher.GUID();
+                var currentRarity = getFinishRarity().getTranslation(TranslationType.NAME).getTranslatedName()
+                        .withStyle(getFinishRarity().textFormatting());
 
                 for (Player p : DungeonMain.MAIN_DUNGEON_STRUCTURE.getAllPlayersInMap(level, pos)) {
-                    var rartext = getFinishRarity().getTranslation(TranslationType.NAME).getTranslatedName()
-                            .withStyle(getFinishRarity().textFormatting());
+                    clearScoreboard(p);
+                    initScoreboard(p);
 
-                    p.sendSystemMessage(DungeonWords.MAP_COMPLETE_RARITY_UPGRADE.get(rartext).withStyle(ChatFormatting.LIGHT_PURPLE));
+                    p.sendSystemMessage(DungeonWords.MAP_COMPLETE_RARITY_UPGRADE.get(currentRarity).withStyle(ChatFormatting.GRAY));
                 }
+
+                return;
             }
+        }
+
+        int killedMobsPercent = calculateKilledMobsPercent();
+        for (Player p : DungeonMain.MAIN_DUNGEON_STRUCTURE.getAllPlayersInMap(level, pos)) {
+            Scoreboard scoreboard = p.getScoreboard();
+            Objective completionPercentObjective = getCompletionPercentObjective(scoreboard);
+            showCompletionScore(scoreboard, completionPercentObjective, killedMobsPercent);
+            positionScoreboard(scoreboard, completionPercentObjective);
+        }
+    }
+
+    private int calculateKilledMobsPercent() {
+        int totalMobs = mobSpawnCount + eliteSpawnCount + miniBossSpawnCount;
+        int killedMobs = mobKills + eliteKills + miniBossKills;
+        if (totalMobs == 0) return 0;
+        float percentage = (killedMobs / (float) totalMobs) * 100f;
+        int rounded = Math.round(percentage);
+        return Math.min(rounded, 100);
+    }
+
+    public static void clearScoreboard(Player p) {
+        var scoreboard = p.getScoreboard();
+        Objective killCompletionPercentObj = scoreboard.getObjective("completion_percent");
+        if(killCompletionPercentObj != null) {
+            p.getScoreboard().removeObjective(killCompletionPercentObj);
         }
     }
 
@@ -245,11 +266,22 @@ public class DungeonMapData {
     public void initScoreboard(Player p) {
         Scoreboard scoreboard = p.getScoreboard();
         int lootCompletionPercent = calculateLootCompletionPercent();
-        int killCompletionPercent = calculateKillCompletionPercent();
+        int killCompletionPercent = calculateKilledMobsPercent();
         Objective completionPercentObjective = getCompletionPercentObjective(scoreboard);
         showCompletionScore(scoreboard, completionPercentObjective, killCompletionPercent);
         showLootScore(scoreboard, completionPercentObjective, lootCompletionPercent);
+        showMapRarity(scoreboard, completionPercentObjective);
         positionScoreboard(scoreboard, completionPercentObjective);
+    }
+
+    private void showMapRarity(Scoreboard scoreboard, Objective completionPercentObjective) {
+        var rarity = getFinishRarity();
+        var colorCode = textFormatToColorCode(rarity.text_format);
+        scoreboard.getOrCreatePlayerScore(colorCode + RARITY_TIER, completionPercentObjective).setScore(rarity.getTier());
+    }
+
+    private String textFormatToColorCode(String textFormat) {
+        return "§" + ChatFormatting.valueOf(textFormat).getChar();
     }
 
     private static void positionScoreboard(Scoreboard scoreboard, Objective completionPercentObjective) {

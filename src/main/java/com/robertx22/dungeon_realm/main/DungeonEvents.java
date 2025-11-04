@@ -9,6 +9,7 @@ import com.robertx22.dungeon_realm.item.DungeonMapGenSettings;
 import com.robertx22.dungeon_realm.item.DungeonMapItem;
 import com.robertx22.dungeon_realm.item.relic.RelicGenerator;
 import com.robertx22.dungeon_realm.structure.DungeonMapCapability;
+import com.robertx22.dungeon_realm.structure.DungeonMapData;
 import com.robertx22.library_of_exile.components.LibMapCap;
 import com.robertx22.library_of_exile.dimension.MapDimensions;
 import com.robertx22.library_of_exile.events.base.EventConsumer;
@@ -22,11 +23,12 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.scores.Objective;
+import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 
@@ -51,20 +53,18 @@ public class DungeonEvents {
 
         ApiForgeEvents.registerForgeEvent(PlayerEvent.PlayerRespawnEvent.class, event -> {
             var p = event.getEntity();
-            Level level = p.level();
-            BlockPos pos = p.blockPosition();
-            clearScoreboard(level, pos, p);
+            DungeonMapData.clearScoreboard(p);
         });
 
         ApiForgeEvents.registerForgeEvent(PlayerEvent.PlayerChangedDimensionEvent.class, event -> {
             var p = event.getEntity();
             Level level = p.level();
             BlockPos pos = p.blockPosition();
-            if (event.getFrom().location().compareTo(DIMENSION_KEY) == 0) {
-                clearScoreboard(level, pos, p);
+            if (isDungeonRealmDimension(event.getFrom())) {
+                DungeonMapData.clearScoreboard(p);
             }
 
-            if (event.getTo().location().compareTo(DIMENSION_KEY) == 0) {
+            if (isDungeonRealmDimension(event.getTo())) {
                 DungeonMain.ifMapData(level, pos, false).ifPresent(x -> {
                     x.initScoreboard(p);
                 });
@@ -146,6 +146,18 @@ public class DungeonEvents {
             }
         });
 
+        ApiForgeEvents.registerForgeEvent(EntityJoinLevelEvent.class, event -> {
+            if (!isDungeonRealmDimension(event.getLevel().dimension()) || !(event.getEntity() instanceof ItemEntity item)) {
+                return;
+            }
+
+            var level = event.getLevel();
+            var pos = item.blockPosition();
+            DungeonMain.ifMapData(level, pos).ifPresent(mapData -> {
+                item.setInvulnerable(true);
+            });
+        });
+
         ExileEvents.DUNGEON_DATA_BLOCK_PLACED.register(new EventConsumer<>() {
             @Override
             public void accept(ExileEvents.DungeonDataBlockPlaced event) {
@@ -219,14 +231,8 @@ public class DungeonEvents {
         });
     }
 
-    private static void clearScoreboard(Level level, BlockPos pos, Player p) {
-        if(DungeonMain.ifMapData(level, pos, false).isEmpty()) {
-            var scoreboard = p.getScoreboard();
-            Objective killCompletionPercentObj = scoreboard.getObjective("completion_percent");
-            if(killCompletionPercentObj != null) {
-                p.getScoreboard().removeObjective(killCompletionPercentObj);
-            }
-        }
+    private static boolean isDungeonRealmDimension(ResourceKey<Level> levelResourceKey) {
+        return levelResourceKey.location().compareTo(DIMENSION_KEY) == 0;
     }
 
     // we're only spawning bonus content in the main map dim+structure
