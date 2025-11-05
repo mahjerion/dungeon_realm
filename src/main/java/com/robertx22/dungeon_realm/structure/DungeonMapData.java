@@ -221,8 +221,8 @@ public class DungeonMapData {
         for (Player p : DungeonMain.MAIN_DUNGEON_STRUCTURE.getAllPlayersInMap(level, pos)) {
             Scoreboard scoreboard = p.getScoreboard();
             Objective completionPercentObjective = getCompletionPercentObjective(scoreboard);
-            showCompletionScore(scoreboard, completionPercentObjective, killedMobsPercent);
-            positionScoreboard(scoreboard, completionPercentObjective);
+            showCompletionScore(p, completionPercentObjective, killedMobsPercent);
+            positionScoreboard(p, completionPercentObjective);
         }
     }
 
