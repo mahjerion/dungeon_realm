@@ -19,8 +19,10 @@ import com.robertx22.library_of_exile.util.PointData;
 import com.robertx22.library_of_exile.utils.RandomUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.network.protocol.game.ClientboundSetObjectivePacket;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
@@ -220,11 +222,11 @@ public class DungeonEvents {
     }
 
     private static void clearScoreboard(Level level, BlockPos pos, Player p) {
-        if(DungeonMain.ifMapData(level, pos, false).isEmpty()) {
+        if (DungeonMain.ifMapData(level, pos, false).isEmpty()) {
             var scoreboard = p.getScoreboard();
             Objective killCompletionPercentObj = scoreboard.getObjective("completion_percent");
             if(killCompletionPercentObj != null) {
-                p.getScoreboard().removeObjective(killCompletionPercentObj);
+                ((ServerPlayer)p).connection.send(new ClientboundSetObjectivePacket(killCompletionPercentObj, ClientboundSetObjectivePacket.METHOD_REMOVE));
             }
         }
     }

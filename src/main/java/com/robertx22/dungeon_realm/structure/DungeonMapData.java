@@ -12,7 +12,11 @@ import com.robertx22.library_of_exile.utils.RandomUtils;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.game.ClientboundSetDisplayObjectivePacket;
+import net.minecraft.network.protocol.game.ClientboundSetObjectivePacket;
+import net.minecraft.network.protocol.game.ClientboundSetScorePacket;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.ServerScoreboard;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
@@ -189,8 +193,8 @@ public class DungeonMapData {
         for (Player p : DungeonMain.MAIN_DUNGEON_STRUCTURE.getAllPlayersInMap(level, pos)) {
             Scoreboard scoreboard = p.getScoreboard();
             Objective completionPercentObjective = getCompletionPercentObjective(scoreboard);
-            showCompletionScore(scoreboard, completionPercentObjective, killCompletionPercent);
-            positionScoreboard(scoreboard, completionPercentObjective);
+            showCompletionScore(p, completionPercentObjective, killCompletionPercent);
+            positionScoreboard(p, completionPercentObjective);
         }
 
         var rar = LibDatabase.MapFinishRarity().get(current_mob_kill_rarity);
@@ -229,30 +233,38 @@ public class DungeonMapData {
         for (Player p : DungeonMain.MAIN_DUNGEON_STRUCTURE.getAllPlayersInMap(level, pos)) {
             Scoreboard scoreboard = p.getScoreboard();
             Objective completionPercentObjective = getCompletionPercentObjective(scoreboard);
-            showLootScore(scoreboard, completionPercentObjective, lootCompletionPercent);
-            positionScoreboard(scoreboard, completionPercentObjective);
+            showLootScore(p, completionPercentObjective, lootCompletionPercent);
+            positionScoreboard(p, completionPercentObjective);
         }
     }
 
-    private static void showCompletionScore(Scoreboard scoreboard, Objective completionPercentObjective, int killCompletionPercent) {
-        scoreboard.getOrCreatePlayerScore("§eKill %", completionPercentObjective).setScore(killCompletionPercent);
+    private static void showCompletionScore(Player player, Objective completionPercentObjective, int killCompletionPercent) {
+        ((ServerPlayer)player).connection.send(new ClientboundSetScorePacket(
+                ServerScoreboard.Method.CHANGE,
+                completionPercentObjective.getName(),
+                "§eKill %",
+                killCompletionPercent));
     }
 
-    private static void showLootScore(Scoreboard scoreboard, Objective completionPercentObjective, int lootCompletionPercent) {
-        scoreboard.getOrCreatePlayerScore("§bLoot %", completionPercentObjective).setScore(lootCompletionPercent);
+    private static void showLootScore(Player player, Objective completionPercentObjective, int lootCompletionPercent) {
+        ((ServerPlayer)player).connection.send(new ClientboundSetScorePacket(
+                ServerScoreboard.Method.CHANGE,
+                completionPercentObjective.getName(),
+                "§bLoot %",
+                lootCompletionPercent));
     }
 
     public void initScoreboard(Player p) {
-        Scoreboard scoreboard = p.getScoreboard();
         int lootCompletionPercent = calculateLootCompletionPercent();
         int killCompletionPercent = calculateKillCompletionPercent();
-        Objective completionPercentObjective = getCompletionPercentObjective(scoreboard);
-        showCompletionScore(scoreboard, completionPercentObjective, killCompletionPercent);
-        showLootScore(scoreboard, completionPercentObjective, lootCompletionPercent);
-        positionScoreboard(scoreboard, completionPercentObjective);
+        Objective completionPercentObjective = getCompletionPercentObjective(p.getScoreboard());
+        showCompletionScore(p, completionPercentObjective, killCompletionPercent);
+        showLootScore(p, completionPercentObjective, lootCompletionPercent);
+        positionScoreboard(p, completionPercentObjective);
     }
 
-    private static void positionScoreboard(Scoreboard scoreboard, Objective completionPercentObjective) {
-        scoreboard.setDisplayObjective(Scoreboard.DISPLAY_SLOT_SIDEBAR, completionPercentObjective);
+    private static void positionScoreboard(Player player, Objective completionPercentObjective) {
+        ((ServerPlayer)player).connection.send(new ClientboundSetObjectivePacket(completionPercentObjective, ClientboundSetObjectivePacket.METHOD_ADD));
+        ((ServerPlayer)player).connection.send(new ClientboundSetDisplayObjectivePacket(Scoreboard.DISPLAY_SLOT_SIDEBAR, completionPercentObjective));
     }
 }
