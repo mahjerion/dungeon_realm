@@ -9,7 +9,6 @@ import com.robertx22.dungeon_realm.item.DungeonMapGenSettings;
 import com.robertx22.dungeon_realm.item.DungeonMapItem;
 import com.robertx22.dungeon_realm.item.relic.RelicGenerator;
 import com.robertx22.dungeon_realm.structure.DungeonMapCapability;
-import com.robertx22.dungeon_realm.structure.DungeonMapData;
 import com.robertx22.library_of_exile.components.LibMapCap;
 import com.robertx22.library_of_exile.dimension.MapDimensions;
 import com.robertx22.library_of_exile.events.base.EventConsumer;
@@ -20,10 +19,8 @@ import com.robertx22.library_of_exile.util.PointData;
 import com.robertx22.library_of_exile.utils.RandomUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.network.protocol.game.ClientboundSetObjectivePacket;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
@@ -32,7 +29,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
-import net.minecraftforge.event.entity.player.PlayerEvent;
 
 import java.util.Optional;
 
@@ -49,26 +45,6 @@ public class DungeonEvents {
                 DungeonMain.ifMapData(event.level, event.pos).ifPresent(x -> {
                     var cap = LibMapCap.get(event.level).data;
                     event.data = cap.getData(DungeonMain.MAIN_DUNGEON_STRUCTURE, event.pos);
-                });
-            }
-        });
-
-        ApiForgeEvents.registerForgeEvent(PlayerEvent.PlayerRespawnEvent.class, event -> {
-            var p = event.getEntity();
-            DungeonMapData.clearScoreboard(p);
-        });
-
-        ApiForgeEvents.registerForgeEvent(PlayerEvent.PlayerChangedDimensionEvent.class, event -> {
-            var p = event.getEntity();
-            Level level = p.level();
-            BlockPos pos = p.blockPosition();
-            if (isDungeonRealmDimension(event.getFrom())) {
-                DungeonMapData.clearScoreboard(p);
-            }
-
-            if (isDungeonRealmDimension(event.getTo())) {
-                DungeonMain.ifMapData(level, pos, false).ifPresent(x -> {
-                    x.initScoreboard(p);
                 });
             }
         });
@@ -200,7 +176,7 @@ public class DungeonEvents {
                     BlockPos pos = event.pos;
                     DungeonMain.ifMapData(level, pos).ifPresent(x -> {
                         x.lootedChests++;
-                        x.updateMapLootCompletion((ServerLevel) level, pos);
+                        x.updateMapDungeonStats((ServerLevel) level, pos);
                     });
                 }
             }
@@ -233,7 +209,7 @@ public class DungeonEvents {
         });
     }
 
-    private static boolean isDungeonRealmDimension(ResourceKey<Level> levelResourceKey) {
+    public static boolean isDungeonRealmDimension(ResourceKey<Level> levelResourceKey) {
         return levelResourceKey.location().compareTo(DIMENSION_KEY) == 0;
     }
 

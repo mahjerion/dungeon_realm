@@ -2,7 +2,6 @@ package com.robertx22.dungeon_realm.main;
 
 import com.google.common.collect.Lists;
 import com.robertx22.dungeon_realm.api.DungeonExileEvents;
-import com.robertx22.dungeon_realm.block_entity.MapDeviceScreen;
 import com.robertx22.dungeon_realm.capability.DungeonEntityCapability;
 import com.robertx22.dungeon_realm.configs.DungeonConfig;
 import com.robertx22.dungeon_realm.database.DungeonDatabase;
@@ -10,6 +9,7 @@ import com.robertx22.dungeon_realm.event.listeners.NeedPearlListener;
 import com.robertx22.dungeon_realm.item.DungeonItemNbt;
 import com.robertx22.dungeon_realm.item.DungeonMapGenSettings;
 import com.robertx22.dungeon_realm.item.DungeonMapItem;
+import com.robertx22.dungeon_realm.main.registers.client.S2CPacketRegister;
 import com.robertx22.dungeon_realm.structure.*;
 import com.robertx22.library_of_exile.config.map_dimension.MapDimensionConfigDefaults;
 import com.robertx22.library_of_exile.config.map_dimension.MapRegisterBuilder;
@@ -46,8 +46,6 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.RenderGuiOverlayEvent;
-import net.minecraftforge.client.event.ScreenEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.data.event.GatherDataEvent;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
@@ -62,8 +60,9 @@ import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.network.NetworkRegistry;
+import net.minecraftforge.network.simple.SimpleChannel;
 import net.minecraftforge.registries.ForgeRegistries;
-import org.lwjgl.opengl.GL11;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -87,6 +86,14 @@ public class DungeonMain {
     public static ResourceLocation id(String id) {
         return new ResourceLocation(MODID, id);
     }
+
+    private static final String PROTOCOL_VERSION = "1";
+    public static final SimpleChannel NETWORK = NetworkRegistry.newSimpleChannel(
+            new ResourceLocation(MODID, "main"),
+            () -> PROTOCOL_VERSION,
+            PROTOCOL_VERSION::equals,
+            PROTOCOL_VERSION::equals
+    );
 
     // other
     public static DungeonMapStructure MAIN_DUNGEON_STRUCTURE = new DungeonMapStructure();
@@ -226,6 +233,8 @@ public class DungeonMain {
         ApiForgeEvents.registerForgeEvent(ServerStartedEvent.class, event -> {
             server = event.getServer();
         });
+
+        S2CPacketRegister.register();
 
         LOG.info("Dungeon Realm loaded.");
     }

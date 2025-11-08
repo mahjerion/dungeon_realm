@@ -47,6 +47,8 @@ public enum DungeonWords implements ITranslated {
     MAP_NAME_WARPED("Warped"),
     MAP_NAME_WN("Whispering Night"),
     MAP_NAME_UNDEFINED("<undefined>"),
+    DUNGEON_STATS_KILL_COMPLETION("Kill: %1$s/%2$s%%"),
+    DUNGEON_STATS_LOOT_COMPLETION("Loot: %1$s/%2$s%%"),
     ;
 
     public String name;
