@@ -7,6 +7,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 
 public class DungeonStatsOverlay {
@@ -21,26 +22,13 @@ public class DungeonStatsOverlay {
         var font = minecraft.font;
         var window = minecraft.getWindow();
 
-        // Prepare all text components to calculate dimensions
-        var mapRarityId = DungeonStatsStore.getMapRarityId();
-        var mapRarity = LibDatabase.MapFinishRarity().get(mapRarityId);
-        var mapRarityName = mapRarity.getTranslation(TranslationType.NAME).getTranslatedName();
+        var mapRarityName = getMapRarityName();
 
         // Build kill completion with gradient colored numbers (gray -> yellow based on percentage)
-        int killPercent = DungeonStatsStore.getKillCompletionPercent();
-        int killColor = interpolateColor(ChatFormatting.GRAY.getColor(), ChatFormatting.YELLOW.getColor(), killPercent / 100.0f);
-        var killCompletion = DungeonWords.DUNGEON_STATS_KILL_COMPLETION.get(
-            Component.literal(String.valueOf(killPercent)).withStyle(style -> style.withColor(killColor)),
-            Component.literal("100").withStyle(ChatFormatting.YELLOW)
-        );
+        var killCompletion = getMapKillCompletion();
 
         // Build loot completion with gradient colored numbers (gray -> aqua based on percentage)
-        int lootPercent = DungeonStatsStore.getLootCompletionPercent();
-        int lootColor = interpolateColor(ChatFormatting.GRAY.getColor(), ChatFormatting.AQUA.getColor(), lootPercent / 100.0f);
-        var lootCompletion = DungeonWords.DUNGEON_STATS_LOOT_COMPLETION.get(
-            Component.literal(String.valueOf(lootPercent)).withStyle(style -> style.withColor(lootColor)),
-            Component.literal("100").withStyle(ChatFormatting.AQUA)
-        );
+        var lootCompletion = getMapLootCompletion();
 
         // Calculate required box dimensions
         // Add CORNER_SIZE (8px) to padding to account for texture borders
@@ -63,6 +51,30 @@ public class DungeonStatsOverlay {
         int y = (screenHeight - boxH) / 2;
 
         renderAt(g, x, y, boxW, boxH, mapRarityName, killCompletion, lootCompletion);
+    }
+
+    private static MutableComponent getMapLootCompletion() {
+        int lootPercent = DungeonStatsStore.getLootCompletionPercent();
+        int lootColor = interpolateColor(ChatFormatting.GRAY.getColor(), ChatFormatting.AQUA.getColor(), lootPercent / 100.0f);
+        return DungeonWords.DUNGEON_STATS_LOOT_COMPLETION.get(
+            Component.literal(String.valueOf(lootPercent)).withStyle(style -> style.withColor(lootColor)),
+            Component.literal("100").withStyle(ChatFormatting.AQUA)
+        );
+    }
+
+    private static MutableComponent getMapKillCompletion() {
+        int killPercent = DungeonStatsStore.getKillCompletionPercent();
+        int killColor = interpolateColor(ChatFormatting.GRAY.getColor(), ChatFormatting.YELLOW.getColor(), killPercent / 100.0f);
+        return DungeonWords.DUNGEON_STATS_KILL_COMPLETION.get(
+            Component.literal(String.valueOf(killPercent)).withStyle(style -> style.withColor(killColor)),
+            Component.literal("100").withStyle(ChatFormatting.YELLOW)
+        );
+    }
+
+    private static MutableComponent getMapRarityName() {
+        var mapRarityId = DungeonStatsStore.getMapRarityId();
+        var mapRarity = LibDatabase.MapFinishRarity().get(mapRarityId);
+        return mapRarity.getTranslation(TranslationType.NAME).getTranslatedName();
     }
 
     public static void renderAt(GuiGraphics g, int x, int y, int boxW, int boxH, Component mapRarityName, Component killCompletion, Component lootCompletion) {
