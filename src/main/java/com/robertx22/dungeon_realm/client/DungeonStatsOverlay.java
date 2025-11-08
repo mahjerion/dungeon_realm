@@ -11,7 +11,6 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 
 public class DungeonStatsOverlay {
-    // Texture location: dungeon_realm/src/main/resources/assets/dungeon_realm/textures/gui/dungeon_stats_overlay.png
     private static final ResourceLocation OVERLAY_TEXTURE = new ResourceLocation("dungeon_realm", "textures/gui/dungeon_stats_overlay.png");
 
     // Nine-patch settings
@@ -23,15 +22,9 @@ public class DungeonStatsOverlay {
         var window = minecraft.getWindow();
 
         var mapRarityName = getMapRarityName();
-
-        // Build kill completion with gradient colored numbers (gray -> yellow based on percentage)
         var killCompletion = getMapKillCompletion();
-
-        // Build loot completion with gradient colored numbers (gray -> aqua based on percentage)
         var lootCompletion = getMapLootCompletion();
 
-        // Calculate required box dimensions
-        // Add CORNER_SIZE (8px) to padding to account for texture borders
         int contentPadding = 2;
         int totalPadding = contentPadding + CORNER_SIZE;
 
