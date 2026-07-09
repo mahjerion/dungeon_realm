@@ -19,6 +19,8 @@
 	"dungeon_realm.dungeon.wn": "Nature's End",
 	"dungeon_realm.uber_boss.uber1": "Realm of Atrophy and Decay",
 	"dungeon_realm.words.creative_tab": "Dungeon Realm",
+	"dungeon_realm.words.dungeon_stats_kill_completion": "Kill: %1$s/%2$s%%",
+	"dungeon_realm.words.dungeon_stats_loot_completion": "Loot: %1$s/%2$s%%",
 	"dungeon_realm.words.home_pearl_desc": "Use to Exit the Dungeon Realm",
 	"dungeon_realm.words.map_complete_rarity_upgrade": "Your Map Exploration is now %1$s",
 	"dungeon_realm.words.map_has_uber_arena": "- { Area Contains an Uber Boss Portal } -",
