@@ -18,6 +18,10 @@ public class DungeonClient {
                     ItemStack stack = event.getItemStack();
                     event.getToolTip().addAll(MapTooltip.getTooltip(stack));
                 }
+                if (event.getItemStack().is(DungeonEntries.FIXED_DUNGEON_MAP_ITEM.get())) {
+                    ItemStack stack = event.getItemStack();
+                    event.getToolTip().addAll(MapTooltip.getTooltip(stack));
+                }
                 if (event.getItemStack().getItem() instanceof RelicItem) {
                     ItemStack stack = event.getItemStack();
                     event.getToolTip().addAll(RelicTooltip.getTooltip(stack));

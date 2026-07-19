@@ -7,7 +7,10 @@ import com.robertx22.dungeon_realm.block_entity.MapDeviceBE;
 import com.robertx22.dungeon_realm.item.DungeonMapItem;
 import com.robertx22.dungeon_realm.item.TeleportBackItem;
 import com.robertx22.library_of_exile.database.relic.relic_type.RelicItem;
+import com.robertx22.dungeon_realm.item.recipe.FixedDungeonMapRecipe;
+import com.robertx22.dungeon_realm.item.recipe.FixedDungeonMapRecipeSerializer;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
@@ -19,14 +22,18 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
+import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.item.crafting.RecipeType;
 
 public class DungeonEntries {
     // registars
+
     public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, DungeonMain.MODID);
     public static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, DungeonMain.MODID);
     public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(ForgeRegistries.BLOCK_ENTITY_TYPES, DungeonMain.MODID);
     public static final DeferredRegister<CreativeModeTab> CREATIVE_TAB = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, DungeonMain.MODID);
     public static final DeferredRegister<MenuType<?>> MENUS = DeferredRegister.create(ForgeRegistries.MENU_TYPES, DungeonMain.MODID);
+    public static final DeferredRegister<RecipeSerializer<?>> RECIPE_SERIALIZERS = DeferredRegister.create(ForgeRegistries.RECIPE_SERIALIZERS, DungeonMain.MODID);
 
     // blocks
     public static RegistryObject<MapDeviceBlock> MAP_DEVICE_BLOCK = BLOCKS.register("map_device", () -> new MapDeviceBlock());
@@ -38,14 +45,16 @@ public class DungeonEntries {
     // block entities
     public static RegistryObject<BlockEntityType<MapDeviceBE>> MAP_DEVICE_BE = BLOCK_ENTITIES.register("map_device", () -> BlockEntityType.Builder.of(MapDeviceBE::new, MAP_DEVICE_BLOCK.get()).build(null));
 
-
     // items
     public static RegistryObject<BlockItem> MAP_DEVICE_ITEM = ITEMS.register("map_device", () -> new BlockItem(MAP_DEVICE_BLOCK.get(), new Item.Properties().stacksTo(64)));
     public static RegistryObject<DungeonMapItem> DUNGEON_MAP_ITEM = ITEMS.register("dungeon_map", () -> new DungeonMapItem());
+    public static final RegistryObject<Item> FIXED_DUNGEON_MAP_ITEM = ITEMS.register("fixed_dungeon_map_item", DungeonMapItem::new);
     public static RegistryObject<Item> UBER_FRAGMENT = ITEMS.register("uber_fragment", () -> new Item(new Item.Properties().stacksTo(64)));
     public static RegistryObject<TeleportBackItem> HOME_TP_BACK = ITEMS.register("home_pearl", () -> new TeleportBackItem());
     public static RegistryObject<Item> RELIC_KEY = ITEMS.register("relic_key", () -> new Item(new Item.Properties().stacksTo(1)));
     public static RegistryObject<Item> RELIC_ITEM = ITEMS.register("general_relic", () -> new RelicItem());
+    public static final RegistryObject<RecipeSerializer<FixedDungeonMapRecipe>> FIXED_DUNGEON_MAP =
+            RECIPE_SERIALIZERS.register("fixed_dungeon_map", FixedDungeonMapRecipeSerializer::new);
 
 
     public static void initDeferred() {
@@ -54,6 +63,7 @@ public class DungeonEntries {
         CREATIVE_TAB.register(bus);
         BLOCKS.register(bus);
         BLOCK_ENTITIES.register(bus);
+        RECIPE_SERIALIZERS.register(bus);
         DungeonMenuTypes.register(bus);
     }
 

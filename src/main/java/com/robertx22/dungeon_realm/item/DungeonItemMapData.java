@@ -28,5 +28,18 @@ public class DungeonItemMapData {
         DungeonItemNbt.DUNGEON_MAP.saveTo(stack, this);
         return new ChunkPos(x, z);
     }
+    public static final String TARGET_DUNGEON_NBT_KEY = "target_dungeon";
+
+    public static String getTargetDungeon(ItemStack stack) {
+        if (stack.hasTag() && stack.getTag().contains(TARGET_DUNGEON_NBT_KEY)) {
+            return stack.getTag().getString(TARGET_DUNGEON_NBT_KEY);
+        }
+        return null;
+    }
+
+    public static ItemStack withTargetDungeon(ItemStack stack, String dungeonGuid) {
+        stack.getOrCreateTag().putString(TARGET_DUNGEON_NBT_KEY, dungeonGuid);
+        return stack;
+    }
 
 }

@@ -6,6 +6,7 @@ import com.robertx22.dungeon_realm.capability.DungeonEntityCapability;
 import com.robertx22.dungeon_realm.configs.DungeonConfig;
 import com.robertx22.dungeon_realm.database.DungeonDatabase;
 import com.robertx22.dungeon_realm.event.listeners.NeedPearlListener;
+import com.robertx22.dungeon_realm.item.DungeonItemMapData;
 import com.robertx22.dungeon_realm.item.DungeonItemNbt;
 import com.robertx22.dungeon_realm.item.DungeonMapGenSettings;
 import com.robertx22.dungeon_realm.item.DungeonMapItem;
@@ -224,6 +225,27 @@ public class DungeonMain {
             @Override
             public void identify(Player player, ItemStack stack) {
                 var newstack = DungeonMapItem.newRandomMapItemStack(new DungeonMapGenSettings());
+                stack.setTag(newstack.getTag());
+            }
+        });
+        IdentifiableItems.register(DungeonEntries.FIXED_DUNGEON_MAP_ITEM.getId(), new IdentifiableItems.Config() {
+            @Override
+            public boolean isUnidentified(ItemStack stack) {
+                return !DungeonItemNbt.DUNGEON_MAP.has(stack);
+            }
+
+            @Override
+            public void identify(Player player, ItemStack stack) {
+                String dungeonGuid = DungeonItemMapData.getTargetDungeon(stack);
+
+                if (dungeonGuid == null || !DungeonDatabase.Dungeons().isRegistered(dungeonGuid)) {
+                    // fallback: target dungeon missing or no longer valid (e.g. datapack removed) — go random instead of crashing/soft-locking the item
+                    var newstack = DungeonMapItem.newRandomMapItemStack(new DungeonMapGenSettings());
+                    stack.setTag(newstack.getTag());
+                    return;
+                }
+
+                var newstack = DungeonMapItem.newFixedMapItemStack(new DungeonMapGenSettings(), dungeonGuid);
                 stack.setTag(newstack.getTag());
             }
         });

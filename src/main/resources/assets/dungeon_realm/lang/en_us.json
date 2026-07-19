@@ -59,6 +59,7 @@
 	"dungeon_realm.words.show_relic_stats_hint": "Press '%1$s' to display all Relic Stats",
 	"dungeon_realm.words.usable_only_in_dungeon_realm": "This is only usable in the Dungeon Realm",
 	"item.dungeon_realm.dungeon_map": "\u00A75Dungeon Map",
+	"item.dungeon_realm.fixed_dungeon_map_item": "\u00A7cDungeon Map",
 	"item.dungeon_realm.general_relic": "\u00A76Dungeon Relic",
 	"item.dungeon_realm.home_pearl": "Home Pearl",
 	"item.dungeon_realm.map_device": "Map Device",

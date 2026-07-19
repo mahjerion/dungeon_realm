@@ -33,15 +33,27 @@ public class DungeonMapItem extends Item {
     }
 
     public static DungeonItemMapData randomNewMapData() {
-
-
         var data = new DungeonItemMapData();
         data.dungeon = GetRandomDungeonGUID();
         return data;
-
     }
 
     public static String GetRandomDungeonGUID() {
         return RandomUtils.weightedRandom(DungeonDatabase.Dungeons().getFilterWrapped(i -> true).list).id;
+    }
+
+    public static ItemStack newFixedMapItemStack(DungeonMapGenSettings p, String dungeonGuid) {
+        ItemStack stack = new ItemStack(DungeonEntries.DUNGEON_MAP_ITEM.get());
+        var data = fixedNewMapData(dungeonGuid);
+        DungeonItemNbt.DUNGEON_MAP.saveTo(stack, data);
+        var event = new OnGenerateNewMapItemEvent(stack);
+        DungeonExileEvents.ON_GENERATE_NEW_MAP_ITEM.callEvents(event);
+        return stack;
+    }
+
+    public static DungeonItemMapData fixedNewMapData(String dungeonGuid) {
+        var data = new DungeonItemMapData();
+        data.dungeon = dungeonGuid;
+        return data;
     }
 }

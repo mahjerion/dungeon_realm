@@ -42,6 +42,7 @@ public class DungeonDataGen implements DataProvider {
             t.createTranslationBuilder().build();
         }
         TranslationBuilder.of(DungeonMain.MODID).name(ExileTranslation.item(DungeonEntries.DUNGEON_MAP_ITEM.get(), ChatFormatting.DARK_PURPLE + "Dungeon Map")).build();
+        TranslationBuilder.of(DungeonMain.MODID).name(ExileTranslation.item(DungeonEntries.FIXED_DUNGEON_MAP_ITEM.get(), ChatFormatting.RED + "Dungeon Map")).build();
         TranslationBuilder.of(DungeonMain.MODID).name(ExileTranslation.item(DungeonEntries.MAP_DEVICE_ITEM.get(), "Map Device")).build();
         TranslationBuilder.of(DungeonMain.MODID).name(ExileTranslation.item(DungeonEntries.UBER_FRAGMENT.get(), "Uber Fragment")).build();
         TranslationBuilder.of(DungeonMain.MODID).name(ExileTranslation.item(DungeonEntries.HOME_TP_BACK.get(), "Home Pearl")).build();
