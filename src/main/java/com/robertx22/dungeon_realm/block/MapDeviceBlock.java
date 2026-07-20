@@ -4,6 +4,7 @@ import com.robertx22.dungeon_realm.api.CanEnterMapEvent;
 import com.robertx22.dungeon_realm.api.CanStartMapEvent;
 import com.robertx22.dungeon_realm.api.DungeonExileEvents;
 import com.robertx22.dungeon_realm.api.OnStartMapEvent;
+import com.robertx22.dungeon_realm.api.OpenAtlasMapEvent;
 import com.robertx22.dungeon_realm.block_entity.MapDeviceBE;
 import com.robertx22.dungeon_realm.block_entity.MapDeviceMenu;
 import com.robertx22.dungeon_realm.item.DungeonItemMapData;
@@ -198,9 +199,13 @@ public class MapDeviceBlock extends BaseEntityBlock {
                     }
 
                     startNewMap(p, stack, obe);
+                } else if (p.isCrouching()) {
+                    DungeonExileEvents.OPEN_ATLAS_MAP.callEvents(new OpenAtlasMapEvent(p));
                 } else {
                     if (obe.isActivated()) {
                         joinCurrentMap(p, obe);
+                    } else {
+                        DungeonExileEvents.OPEN_ATLAS_MAP.callEvents(new OpenAtlasMapEvent(p));
                     }
                 }
 

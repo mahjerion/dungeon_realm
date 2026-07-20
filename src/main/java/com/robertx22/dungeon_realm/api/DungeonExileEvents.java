@@ -15,6 +15,7 @@ public class DungeonExileEvents {
     public static ExileEventCaller<GetUnlockedAtlasNodesEvent> GET_UNLOCKED_ATLAS_NODES = new ExileEventCaller<>();
     public static ExileEventCaller<GetPackSizeBonusEvent> GET_PACK_SIZE_BONUS = new ExileEventCaller<>();
     public static ExileEventCaller<GetUberFragmentFindBonusEvent> GET_UBER_FRAGMENT_FIND_BONUS = new ExileEventCaller<>();
+    public static ExileEventCaller<OpenAtlasMapEvent> OPEN_ATLAS_MAP = new ExileEventCaller<>();
 
     public static void init() {
 
