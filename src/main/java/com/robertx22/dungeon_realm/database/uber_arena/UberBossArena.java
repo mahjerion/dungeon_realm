@@ -32,9 +32,17 @@ public class UberBossArena implements JsonExileRegistry<UberBossArena>, IAutoGso
     public SimplePrebuiltMapData structure_data = new SimplePrebuiltMapData(1, "");
 
     public List<String> possible_bosses = new ArrayList<>();
+    // shares this same arena's structure_data/rooms - only the altar's boss-pool selection
+    // differs, gated on the map's own `pinnacle` flag (see UberBossAltarBlock), not this list's
+    // mere presence. Empty by default until a modpack author populates it.
+    public List<String> possible_pinnacle_bosses = new ArrayList<>();
 
     public EntityType getRandomBoss() {
         return ForgeRegistries.ENTITY_TYPES.getValue(new ResourceLocation(RandomUtils.randomFromList(possible_bosses)));
+    }
+
+    public EntityType getRandomPinnacleBoss() {
+        return ForgeRegistries.ENTITY_TYPES.getValue(new ResourceLocation(RandomUtils.randomFromList(possible_pinnacle_bosses)));
     }
 
     @Override
@@ -63,6 +71,11 @@ public class UberBossArena implements JsonExileRegistry<UberBossArena>, IAutoGso
         return TranslationBuilder.of(modid)
                 .name(ExileTranslation.registry(this, name))
                 .desc(ExileTranslation.registry(this, desc));
+    }
+
+    public UberBossArena withPinnacleBoss(EntityType bossEntity) {
+        possible_pinnacle_bosses.add(ForgeRegistries.ENTITY_TYPES.getKey(bossEntity).toString());
+        return this;
     }
 
     public static UberBossArena createBoss(String id, String name, String modid, String chat, EntityType bossEntity, SimplePrebuiltMapData struc) {

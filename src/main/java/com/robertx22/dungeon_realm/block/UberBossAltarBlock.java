@@ -1,6 +1,7 @@
 package com.robertx22.dungeon_realm.block;
 
 import com.robertx22.dungeon_realm.api.DungeonExileEvents;
+import com.robertx22.dungeon_realm.api.SpawnPinnacleEvent;
 import com.robertx22.dungeon_realm.api.SpawnUberEvent;
 import com.robertx22.dungeon_realm.capability.DungeonEntityCapability;
 import com.robertx22.dungeon_realm.main.DungeonMain;
@@ -41,7 +42,11 @@ public class UberBossAltarBlock extends Block {
 
                     DungeonMain.ifMapData(level, pPos).ifPresent(x -> {
                         var uber = DungeonMain.UBER_ARENA.getUber(new ChunkPos(pPos));
-                        var type = uber.getRandomBoss();
+                        // reads THIS map's own recorded upgrade tier - same outcome for every
+                        // player in the run, no per-player check (a Pinnacle Map still needs the
+                        // pinnacle boss pool actually populated for this arena template)
+                        boolean pinnacle = x.item.pinnacle && !uber.possible_pinnacle_bosses.isEmpty();
+                        var type = pinnacle ? uber.getRandomPinnacleBoss() : uber.getRandomBoss();
 
                         LivingEntity en = (LivingEntity) type.create(level);
                         en.setPos(new MyPosition(pPos).add(0, 1, 0));
@@ -52,9 +57,13 @@ public class UberBossAltarBlock extends Block {
 
                         level.addFreshEntity(en);
 
-                        DungeonEntityCapability.get(en).data.isUberBoss = true;
-
-                        DungeonExileEvents.ON_SPAWN_UBER_BOSS.callEvents(new SpawnUberEvent(en));
+                        if (pinnacle) {
+                            DungeonEntityCapability.get(en).data.isPinnacleBoss = true;
+                            DungeonExileEvents.ON_SPAWN_PINNACLE_BOSS.callEvents(new SpawnPinnacleEvent(en));
+                        } else {
+                            DungeonEntityCapability.get(en).data.isUberBoss = true;
+                            DungeonExileEvents.ON_SPAWN_UBER_BOSS.callEvents(new SpawnUberEvent(en));
+                        }
 
                         if (en instanceof Mob mob) {
                             mob.setPersistenceRequired();

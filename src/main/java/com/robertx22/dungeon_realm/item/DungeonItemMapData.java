@@ -15,6 +15,9 @@ public class DungeonItemMapData {
     public int bonus_contents = 1;
 
     public boolean uber = false;
+    // mutually exclusive with uber - a map is normal, uber, or pinnacle, never two at once
+    // (enforced by BeNotUberReq/BeNotPinnacleReq at upgrade-apply time)
+    public boolean pinnacle = false;
     public String dungeon;
 
 

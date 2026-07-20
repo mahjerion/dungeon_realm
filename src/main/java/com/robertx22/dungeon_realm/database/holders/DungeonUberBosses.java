@@ -27,6 +27,8 @@ public class DungeonUberBosses extends ExileKeyHolder<MapDataBlock> {
                 EntityType.WITHER,
                 new SimplePrebuiltMapData(3, DungeonMain.MODID + ":uber/river")
         );
+        // same arena/rooms - a Pinnacle Map's altar spawns from this pool instead of possible_bosses
+        arena.withPinnacleBoss(EntityType.WARDEN);
         return arena;
     });
 

@@ -123,7 +123,9 @@ public class MapBonusContentsData {
             possible.removeIf(x -> x.obj.GUID().equals(c.GUID()));
         }
 
-        if (map.uber) {
+        // pinnacle maps reuse the exact same arena/altar content as uber maps - only what the
+        // altar actually spawns differs, read from this same map's own `pinnacle` flag
+        if (map.uber || map.pinnacle) {
             addContent(DungeonBonusContents.INSTANCE.UBER_BOSS.get(), libdata);
         }
     }

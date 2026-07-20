@@ -29,6 +29,7 @@ public class DungeonModConstructor extends OrderedModConstructor {
                 DungeonDungeons.INSTANCE,
                 DungeonBossArenas.INSTANCE,
                 DungeonUberBosses.INSTANCE,
+                DungeonAtlasNodes.INSTANCE,
                 DungeonBonusContents.INSTANCE,
                 DungeonItemMods.INSTANCE,
                 DungeonItemReqs.INSTANCE,

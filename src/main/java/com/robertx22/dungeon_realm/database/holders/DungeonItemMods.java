@@ -1,5 +1,6 @@
 package com.robertx22.dungeon_realm.database.holders;
 
+import com.robertx22.dungeon_realm.database.item_mods.PinnacleUpgradeMod;
 import com.robertx22.dungeon_realm.database.item_mods.UberUpgradeMod;
 import com.robertx22.dungeon_realm.main.DungeonMain;
 import com.robertx22.library_of_exile.registry.helpers.ExileKey;
@@ -17,6 +18,7 @@ public class DungeonItemMods extends ExileKeyHolder<ItemModification> {
     }
 
     public ExileKey<ItemModification, KeyInfo> UBER_UPGRADE = ExileKey.ofId(this, "uber_upgrade", x -> new UberUpgradeMod(x.GUID()));
+    public ExileKey<ItemModification, KeyInfo> PINNACLE_UPGRADE = ExileKey.ofId(this, "pinnacle_upgrade", x -> new PinnacleUpgradeMod(x.GUID()));
 
 
     @Override

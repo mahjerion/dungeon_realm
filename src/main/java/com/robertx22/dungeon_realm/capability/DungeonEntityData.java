@@ -4,6 +4,7 @@ public class DungeonEntityData {
 
     public boolean isFinalMapBoss = false;
     public boolean isUberBoss = false;
+    public boolean isPinnacleBoss = false;
     public boolean isDungeonMob = false;
     public boolean isDungeonEliteMob = false;
     public boolean isMiniBossMob = false;

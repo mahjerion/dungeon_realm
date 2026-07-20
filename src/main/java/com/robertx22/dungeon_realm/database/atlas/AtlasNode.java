@@ -33,6 +33,11 @@ public class AtlasNode implements JsonExileRegistry<AtlasNode>, IAutoGson<AtlasN
     public String min_rarity = "";
     public boolean require_uber = false;
 
+    // if true, completing this node counts toward unlocking the Pinnacle boss - a modpack author
+    // can flag one specific node ("complete this node") or every node ("complete the whole
+    // atlas") by flagging some or all nodes; see AtlasData.pinnacleUnlocked
+    public boolean is_pinnacle_unlock = false;
+
     @Override
     public ExileRegistryType getExileRegistryType() {
         return DungeonDatabase.ATLAS_NODE;
@@ -51,5 +56,40 @@ public class AtlasNode implements JsonExileRegistry<AtlasNode>, IAutoGson<AtlasN
     @Override
     public int Weight() {
         return 1000;
+    }
+
+    // fluent factory used by DungeonAtlasNodes (Java-driven registration - see that class for
+    // why) - kept close to the JSON shape so a registration reads like its old JSON entry
+    public static AtlasNode of(String id, String dungeon, int atlasPointsReward) {
+        AtlasNode n = new AtlasNode();
+        n.id = id;
+        n.dungeon = dungeon;
+        n.atlas_points_reward = atlasPointsReward;
+        return n;
+    }
+
+    public AtlasNode startingNode() {
+        this.starting_node = true;
+        return this;
+    }
+
+    public AtlasNode requireUber() {
+        this.require_uber = true;
+        return this;
+    }
+
+    public AtlasNode minTier(int t) {
+        this.min_tier = t;
+        return this;
+    }
+
+    public AtlasNode minRarity(String r) {
+        this.min_rarity = r;
+        return this;
+    }
+
+    public AtlasNode pinnacleUnlock() {
+        this.is_pinnacle_unlock = true;
+        return this;
     }
 }
