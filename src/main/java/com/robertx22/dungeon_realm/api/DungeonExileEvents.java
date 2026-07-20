@@ -11,6 +11,10 @@ public class DungeonExileEvents {
     public static ExileEventCaller<SpawnUberEvent> ON_SPAWN_UBER_BOSS = new ExileEventCaller<>();
     public static ExileEventCaller<OnStartMapEvent> ON_START_NEW_MAP = new ExileEventCaller<>();
     public static ExileEventCaller<OnGenerateNewMapItemEvent> ON_GENERATE_NEW_MAP_ITEM = new ExileEventCaller<>();
+    public static ExileEventCaller<OnMapFullyClearedEvent> ON_MAP_FULLY_CLEARED = new ExileEventCaller<>();
+    public static ExileEventCaller<GetUnlockedAtlasNodesEvent> GET_UNLOCKED_ATLAS_NODES = new ExileEventCaller<>();
+    public static ExileEventCaller<GetPackSizeBonusEvent> GET_PACK_SIZE_BONUS = new ExileEventCaller<>();
+    public static ExileEventCaller<GetUberFragmentFindBonusEvent> GET_UBER_FRAGMENT_FIND_BONUS = new ExileEventCaller<>();
 
     public static void init() {
 

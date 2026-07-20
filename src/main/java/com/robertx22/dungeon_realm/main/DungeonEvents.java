@@ -1,5 +1,8 @@
 package com.robertx22.dungeon_realm.main;
 
+import com.robertx22.dungeon_realm.api.DungeonExileEvents;
+import com.robertx22.dungeon_realm.api.GetUberFragmentFindBonusEvent;
+import com.robertx22.dungeon_realm.api.OnMapFullyClearedEvent;
 import com.robertx22.dungeon_realm.capability.DungeonEntityCapability;
 import com.robertx22.dungeon_realm.capability.DungeonEntityData;
 import com.robertx22.dungeon_realm.configs.DungeonConfig;
@@ -97,12 +100,23 @@ public class DungeonEvents {
 
                     mob.spawnAtLocation(RelicGenerator.randomRelicItem(Optional.empty(), new RelicGenerator.Settings()));
 
+                    DungeonMain.ifMapData(level, pos).ifPresent(mapData -> {
+                        DungeonExileEvents.ON_MAP_FULLY_CLEARED.callEvents(new OnMapFullyClearedEvent(mapData.dungeon,
+                                DungeonMain.MAIN_DUNGEON_STRUCTURE.getAllPlayersInMap((ServerLevel) level, pos)));
+                    });
+
                     var data = LibMapCap.getData(level, pos);
+
+                    Player killer = event.getSource().getEntity() instanceof Player p ? p : null;
 
                     float chance = DungeonConfig.get().UBER_FRAG_DROPRATE.get().floatValue();
 
                     if (data != null) {
                         chance *= 1F + (data.relicStats.get(DungeonRelicStats.INSTANCE.BONUS_BOSS_FRAG_CHANCE.get()) / 100F);
+                    }
+                    if (killer != null) {
+                        float uberFragFind = DungeonExileEvents.GET_UBER_FRAGMENT_FIND_BONUS.callEvents(new GetUberFragmentFindBonusEvent(killer)).bonusPercent;
+                        chance *= 1F + (uberFragFind / 100F);
                     }
 
                     if (RandomUtils.roll(chance)) {
@@ -110,12 +124,12 @@ public class DungeonEvents {
                     }
 
                     // todo this isn't ideal
-                    if (event.getSource().getEntity() instanceof Player p) {
+                    if (killer != null) {
                         var libdata = LibMapCap.getData(level, pos);
                         if (libdata != null) {
                             float mapchance = libdata.relicStats.get(DungeonRelicStats.INSTANCE.BONUS_MAP_ITEM_FROM_BOSS_CHANCE);
                             if (RandomUtils.roll(mapchance)) {
-                                mob.spawnAtLocation(DungeonMapItem.newRandomMapItemStack(new DungeonMapGenSettings()));
+                                mob.spawnAtLocation(DungeonMapItem.newRandomMapItemStack(new DungeonMapGenSettings(), killer));
                             }
                         }
                     }

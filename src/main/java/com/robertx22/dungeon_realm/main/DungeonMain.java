@@ -189,7 +189,7 @@ public class DungeonMain {
                             var empty = mygetEmptySlotsRandomized(e.inventory, new Random());
                             if (!empty.isEmpty()) {
                                 int index = RandomUtils.randomFromList(empty);
-                                var map = DungeonMapItem.newRandomMapItemStack(new DungeonMapGenSettings());
+                                var map = DungeonMapItem.newRandomMapItemStack(new DungeonMapGenSettings(), e.player);
                                 e.inventory.setItem(index, map);
                             }
                         }
@@ -224,7 +224,7 @@ public class DungeonMain {
 
             @Override
             public void identify(Player player, ItemStack stack) {
-                var newstack = DungeonMapItem.newRandomMapItemStack(new DungeonMapGenSettings());
+                var newstack = DungeonMapItem.newRandomMapItemStack(new DungeonMapGenSettings(), player);
                 stack.setTag(newstack.getTag());
             }
         });
@@ -240,12 +240,12 @@ public class DungeonMain {
 
                 if (dungeonGuid == null || !DungeonDatabase.Dungeons().isRegistered(dungeonGuid)) {
                     // fallback: target dungeon missing or no longer valid (e.g. datapack removed) — go random instead of crashing/soft-locking the item
-                    var newstack = DungeonMapItem.newRandomMapItemStack(new DungeonMapGenSettings());
+                    var newstack = DungeonMapItem.newRandomMapItemStack(new DungeonMapGenSettings(), player);
                     stack.setTag(newstack.getTag());
                     return;
                 }
 
-                var newstack = DungeonMapItem.newFixedMapItemStack(new DungeonMapGenSettings(), dungeonGuid);
+                var newstack = DungeonMapItem.newFixedMapItemStack(new DungeonMapGenSettings(), dungeonGuid, player);
                 stack.setTag(newstack.getTag());
             }
         });

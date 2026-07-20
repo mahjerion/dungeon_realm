@@ -1,5 +1,7 @@
 package com.robertx22.dungeon_realm.database.data_blocks.mobs;
 
+import com.robertx22.dungeon_realm.api.DungeonExileEvents;
+import com.robertx22.dungeon_realm.api.GetPackSizeBonusEvent;
 import com.robertx22.dungeon_realm.capability.DungeonEntityData;
 import com.robertx22.dungeon_realm.configs.DungeonConfig;
 import com.robertx22.dungeon_realm.main.DataBlockTags;
@@ -13,6 +15,7 @@ import com.robertx22.library_of_exile.util.wiki.WikiEntry;
 import com.robertx22.library_of_exile.utils.RandomUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
@@ -33,8 +36,10 @@ public class EliteMobHordeMB extends MapDataBlock implements IGetMobSpawnBlockKi
     public void processImplementationINTERNAL(String s, BlockPos pos, Level level, CompoundTag nbt, MapBlockCtx ctx) {
         EntityType<? extends LivingEntity> type = DungeonMain.DUNGEON_MOB_SPAWNS.getPredeterminedRandom(level, pos).getRandomMob().getType();
 
-        int amount = RandomUtils.RandomRange(DungeonConfig.get().PACK_MOB_MIN.get(), DungeonConfig.get().PACK_MOB_MAX.get());
-        MobPackSizeEffect.tryIncreasePackSize(amount, ctx.libMapData.relicStats);
+        int rolledAmount = RandomUtils.RandomRange(DungeonConfig.get().PACK_MOB_MIN.get(), DungeonConfig.get().PACK_MOB_MAX.get());
+        var packSizeBonus = DungeonExileEvents.GET_PACK_SIZE_BONUS.callEvents(
+                new GetPackSizeBonusEvent(DungeonMain.MAIN_DUNGEON_STRUCTURE.getAllPlayersInMap((ServerLevel) level, pos))).bonusPercent;
+        int amount = MobPackSizeEffect.tryIncreasePackSize(rolledAmount, ctx.libMapData.relicStats, packSizeBonus);
 
         MobBuilder.of(type, this, x -> {
             x.amount = amount;
