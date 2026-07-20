@@ -1,5 +1,6 @@
 package com.robertx22.dungeon_realm.database;
 
+import com.robertx22.dungeon_realm.database.atlas.AtlasNode;
 import com.robertx22.dungeon_realm.database.boss_arena.BossArena;
 import com.robertx22.dungeon_realm.database.dungeon.Dungeon;
 import com.robertx22.dungeon_realm.database.uber_arena.UberBossArena;
@@ -24,9 +25,14 @@ public class DungeonDatabase extends ExileDatabaseInit {
     public static ExileRegistryType BOSS_ARENA = ExileRegistryType.register(DungeonMain.MODID, "boss_arena", 51, BossArena.SERIALIZER, SyncTime.NEVER);
     public static ExileRegistryType UBER_BOSS = ExileRegistryType.register(DungeonMain.MODID, "uber_boss", 45, UberBossArena.SERIALIZER, SyncTime.ON_LOGIN);
     public static ExileRegistryType DUNGEON = ExileRegistryType.register(DungeonMain.MODID, "dungeon", 34, Dungeon.SERIALIZER, SyncTime.ON_LOGIN); // todo does the client need this?
+    public static ExileRegistryType ATLAS_NODE = ExileRegistryType.register(DungeonMain.MODID, "atlas_node", 52, AtlasNode.SERIALIZER, SyncTime.ON_LOGIN);
 
     public static ExileRegistryContainer<Dungeon> Dungeons() {
         return Database.getRegistry(DUNGEON);
+    }
+
+    public static ExileRegistryContainer<AtlasNode> AtlasNodes() {
+        return Database.getRegistry(ATLAS_NODE);
     }
 
     public static ExileRegistryContainer<UberBossArena> UberBoss() {
@@ -43,6 +49,7 @@ public class DungeonDatabase extends ExileDatabaseInit {
         Database.addRegistry(new ExileRegistryContainer<>(DUNGEON, "empty").setIsDatapack());
         Database.addRegistry(new ExileRegistryContainer<>(UBER_BOSS, "empty").setIsDatapack());
         Database.addRegistry(new ExileRegistryContainer<>(BOSS_ARENA, "empty").setIsDatapack());
+        Database.addRegistry(new ExileRegistryContainer<>(ATLAS_NODE, "empty").setIsDatapack());
 
     }
 

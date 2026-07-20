@@ -5,7 +5,7 @@ import com.robertx22.dungeon_realm.api.GetUnlockedAtlasNodesEvent;
 import com.robertx22.dungeon_realm.api.OnGenerateNewMapItemEvent;
 import com.robertx22.dungeon_realm.database.DungeonDatabase;
 import com.robertx22.dungeon_realm.main.DungeonEntries;
-import com.robertx22.library_of_exile.database.atlas.AtlasNodeUtils;
+import com.robertx22.dungeon_realm.database.atlas.AtlasNodeUtils;
 import com.robertx22.library_of_exile.utils.RandomUtils;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
