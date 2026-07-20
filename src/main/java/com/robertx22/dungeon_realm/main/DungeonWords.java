@@ -49,6 +49,7 @@ public enum DungeonWords implements ITranslated {
     MAP_NAME_UNDEFINED("<undefined>"),
     DUNGEON_STATS_KILL_COMPLETION("Kill: %1$s/%2$s%%"),
     DUNGEON_STATS_LOOT_COMPLETION("Loot: %1$s/%2$s%%"),
+    BOSS_TELEPORT_UNLOCKED("Your exploration of the map has yielded results! Open the Main Hub's Map screen to teleport straight to the Boss."),
     ;
 
     public String name;

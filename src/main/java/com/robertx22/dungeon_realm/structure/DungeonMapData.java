@@ -37,6 +37,8 @@ public class DungeonMapData {
 
     public String current_mob_kill_rarity = "common";
 
+    public boolean gave_boss_tp = false;
+
     // Separating these out into specific counts is potentially overkill, but it makes handling specifics related to
     // elites a lot easier to manage. For now, elites count 10x toward map completion as normal mobs
     public int mobDataBlockCount = 0;
@@ -127,7 +129,7 @@ public class DungeonMapData {
         return result;
     }
 
-    private int calculateKillCompletionPercent() {
+    public int calculateKillCompletionPercent() {
         int ELITE_KILL_WEIGHT = DungeonConfig.get().ELITE_MOB_COMPLETION_WEIGHT.get();
         int MINI_BOSS_KILL_WEIGHT = DungeonConfig.get().MINI_BOSS_COMPLETION_WEIGHT.get();
         int KILL_COMPLETION_DATA_BLOCK_LEEWAY = DungeonConfig.get().KILL_COMPLETION_DATA_BLOCK_LEEWAY.get();
@@ -201,10 +203,15 @@ public class DungeonMapData {
             }
         }
 
+        checkBossTeleportUnlock(level, pos, killCompletionPercent);
+        packet.rarityProgressPercent = killCompletionPercent;
+        packet.bossTeleportUnlocked = gave_boss_tp;
+        packet.mapDungeon = item.dungeon;
+        packet.mapUber = item.uber;
         updateMapDungeonStatsWithPacket(level, pos, packet);
     }
 
-    private int calculateKilledMobsPercent() {
+    public int calculateKilledMobsPercent() {
         int totalMobs = mobSpawnCount + eliteSpawnCount + miniBossSpawnCount;
         int killedMobs = mobKills + eliteKills + miniBossKills;
         if (totalMobs == 0) return 0;
@@ -215,9 +222,24 @@ public class DungeonMapData {
 
     public void updateMapDungeonStats(ServerLevel level, BlockPos pos) {
         int killedMobsPercent = calculateKilledMobsPercent();
+        int killCompletionPercent = calculateKillCompletionPercent();
         int lootCompletionPercent = calculateLootCompletionPercent();
         DungeonStatsPacket packet = new DungeonStatsPacket(killedMobsPercent, lootCompletionPercent, current_mob_kill_rarity);
+        checkBossTeleportUnlock(level, pos, killCompletionPercent);
+        packet.rarityProgressPercent = killCompletionPercent;
+        packet.bossTeleportUnlocked = gave_boss_tp;
+        packet.mapDungeon = item.dungeon;
+        packet.mapUber = item.uber;
         updateMapDungeonStatsWithPacket(level, pos, packet);
+    }
+
+    private void checkBossTeleportUnlock(ServerLevel level, BlockPos pos, int rarityProgressPercent) {
+        if (!gave_boss_tp && rarityProgressPercent >= DungeonConfig.get().MAP_PERCENT_COMPLETE_NEEDED_FOR_BOSS_ARENA.get()) {
+            gave_boss_tp = true;
+            for (Player p : DungeonMain.MAIN_DUNGEON_STRUCTURE.getAllPlayersInMap(level, pos)) {
+                p.sendSystemMessage(DungeonWords.BOSS_TELEPORT_UNLOCKED.get().withStyle(ChatFormatting.RED));
+            }
+        }
     }
 
     private static void updateMapDungeonStatsWithPacket(ServerLevel level, BlockPos pos, DungeonStatsPacket packet) {

@@ -4,6 +4,10 @@ public class DungeonStatsStore {
     private static int killCompletionPercent;
     private static int lootCompletionPercent;
     private static String mapRarityId;
+    private static boolean bossTeleportUnlocked;
+    private static String mapDungeon;
+    private static boolean mapUber;
+    private static int rarityProgressPercent;
 
     public static void setKillCompletionPercent(int killCompletionPercent) {
         DungeonStatsStore.killCompletionPercent = killCompletionPercent;
@@ -17,6 +21,22 @@ public class DungeonStatsStore {
         DungeonStatsStore.mapRarityId = mapRarityId;
     }
 
+    public static void setBossTeleportUnlocked(boolean bossTeleportUnlocked) {
+        DungeonStatsStore.bossTeleportUnlocked = bossTeleportUnlocked;
+    }
+
+    public static void setMapDungeon(String mapDungeon) {
+        DungeonStatsStore.mapDungeon = mapDungeon;
+    }
+
+    public static void setMapUber(boolean mapUber) {
+        DungeonStatsStore.mapUber = mapUber;
+    }
+
+    public static void setRarityProgressPercent(int rarityProgressPercent) {
+        DungeonStatsStore.rarityProgressPercent = rarityProgressPercent;
+    }
+
     public static int getKillCompletionPercent() {
         return DungeonStatsStore.killCompletionPercent;
     }
@@ -27,5 +47,21 @@ public class DungeonStatsStore {
 
     public static String getMapRarityId() {
         return DungeonStatsStore.mapRarityId;
+    }
+
+    public static boolean isBossTeleportUnlocked() {
+        return DungeonStatsStore.bossTeleportUnlocked;
+    }
+
+    public static String getMapDungeon() {
+        return DungeonStatsStore.mapDungeon;
+    }
+
+    public static boolean isMapUber() {
+        return DungeonStatsStore.mapUber;
+    }
+
+    public static int getRarityProgressPercent() {
+        return DungeonStatsStore.rarityProgressPercent;
     }
 }

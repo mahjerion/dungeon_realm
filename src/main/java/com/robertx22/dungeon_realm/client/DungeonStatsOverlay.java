@@ -46,7 +46,7 @@ public class DungeonStatsOverlay {
         renderAt(g, x, y, boxW, boxH, mapRarityName, killCompletion, lootCompletion);
     }
 
-    private static MutableComponent getMapLootCompletion() {
+    public static MutableComponent getMapLootCompletion() {
         int lootPercent = DungeonStatsStore.getLootCompletionPercent();
         int lootColor = interpolateColor(ChatFormatting.GRAY.getColor(), ChatFormatting.AQUA.getColor(), lootPercent / 100.0f);
         return DungeonWords.DUNGEON_STATS_LOOT_COMPLETION.get(
@@ -55,7 +55,7 @@ public class DungeonStatsOverlay {
         );
     }
 
-    private static MutableComponent getMapKillCompletion() {
+    public static MutableComponent getMapKillCompletion() {
         int killPercent = DungeonStatsStore.getKillCompletionPercent();
         int killColor = interpolateColor(ChatFormatting.GRAY.getColor(), ChatFormatting.YELLOW.getColor(), killPercent / 100.0f);
         return DungeonWords.DUNGEON_STATS_KILL_COMPLETION.get(
@@ -64,7 +64,7 @@ public class DungeonStatsOverlay {
         );
     }
 
-    private static MutableComponent getMapRarityName() {
+    public static MutableComponent getMapRarityName() {
         var mapRarityId = DungeonStatsStore.getMapRarityId();
         var mapRarity = LibDatabase.MapFinishRarity().get(mapRarityId);
         return mapRarity.getTranslation(TranslationType.NAME).getTranslatedName();

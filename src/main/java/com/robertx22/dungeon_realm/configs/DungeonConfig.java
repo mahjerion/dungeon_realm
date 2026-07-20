@@ -40,6 +40,8 @@ public class DungeonConfig {
 
     public ForgeConfigSpec.IntValue KILL_COMPLETION_DATA_BLOCK_LEEWAY;
 
+    public ForgeConfigSpec.IntValue MAP_PERCENT_COMPLETE_NEEDED_FOR_BOSS_ARENA;
+
     public static DungeonConfig get() {
         return CONFIG;
     }
@@ -103,6 +105,9 @@ public class DungeonConfig {
                 .comment("denominator for the calculation shrinks, and kill % goes up. 2 seems to be roughly the right number from testing, but if this proves to be insanely accurate")
                 .comment("feel free to crank this back down to 1 or 0.")
                         .defineInRange("kill_completion_data_block_leeway", 2, 0, 20);
+
+        MAP_PERCENT_COMPLETE_NEEDED_FOR_BOSS_ARENA = b.comment("Kill completion percent needed before players can teleport straight to the map boss from the Map gui, without needing to find the boss teleport block.")
+                .defineInRange("map_percent_complete_needed_for_boss_arena", 30, 5, 99);
 
         b.pop();
     }

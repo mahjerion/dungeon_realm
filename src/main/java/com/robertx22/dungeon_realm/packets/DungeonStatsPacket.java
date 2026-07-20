@@ -11,6 +11,10 @@ public class DungeonStatsPacket  extends MyPacket<DungeonStatsPacket>  {
     public int killCompletionPercent;
     public int lootCompletionPercent;
     public String mapRarityId;
+    public boolean bossTeleportUnlocked;
+    public String mapDungeon = "";
+    public boolean mapUber;
+    public int rarityProgressPercent;
 
     public DungeonStatsPacket() {}
 
@@ -30,6 +34,10 @@ public class DungeonStatsPacket  extends MyPacket<DungeonStatsPacket>  {
         this.killCompletionPercent = friendlyByteBuf.readInt();
         this.lootCompletionPercent = friendlyByteBuf.readInt();
         this.mapRarityId = friendlyByteBuf.readUtf();
+        this.bossTeleportUnlocked = friendlyByteBuf.readBoolean();
+        this.mapDungeon = friendlyByteBuf.readUtf();
+        this.mapUber = friendlyByteBuf.readBoolean();
+        this.rarityProgressPercent = friendlyByteBuf.readInt();
     }
 
     @Override
@@ -37,6 +45,10 @@ public class DungeonStatsPacket  extends MyPacket<DungeonStatsPacket>  {
         friendlyByteBuf.writeInt(killCompletionPercent);
         friendlyByteBuf.writeInt(lootCompletionPercent);
         friendlyByteBuf.writeUtf(mapRarityId);
+        friendlyByteBuf.writeBoolean(bossTeleportUnlocked);
+        friendlyByteBuf.writeUtf(mapDungeon == null ? "" : mapDungeon);
+        friendlyByteBuf.writeBoolean(mapUber);
+        friendlyByteBuf.writeInt(rarityProgressPercent);
     }
 
     @Override
@@ -44,6 +56,10 @@ public class DungeonStatsPacket  extends MyPacket<DungeonStatsPacket>  {
         DungeonStatsStore.setKillCompletionPercent(killCompletionPercent);
         DungeonStatsStore.setLootCompletionPercent(lootCompletionPercent);
         DungeonStatsStore.setMapRarityId(mapRarityId);
+        DungeonStatsStore.setBossTeleportUnlocked(bossTeleportUnlocked);
+        DungeonStatsStore.setMapDungeon(mapDungeon);
+        DungeonStatsStore.setMapUber(mapUber);
+        DungeonStatsStore.setRarityProgressPercent(rarityProgressPercent);
     }
 
     @Override
