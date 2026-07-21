@@ -1,6 +1,8 @@
 package com.robertx22.dungeon_realm.structure;
 
 
+import com.robertx22.dungeon_realm.api.DungeonExileEvents;
+import com.robertx22.dungeon_realm.api.GetMapContentWeightBonusEvent;
 import com.robertx22.dungeon_realm.database.holders.DungeonBonusContents;
 import com.robertx22.dungeon_realm.database.holders.DungeonRelicStats;
 import com.robertx22.dungeon_realm.item.DungeonItemNbt;
@@ -21,6 +23,7 @@ import net.minecraft.world.level.ChunkPos;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -104,13 +107,18 @@ public class MapBonusContentsData {
         }
 
         var possible = LibDatabase.MapContent().getFiltered(x -> !x.always_spawn && x.Weight() > 0).stream().map(e -> {
-            int weight = e.weight;
+            float weight = e.weight;
             for (RelicStat stat : LibDatabase.RelicStats().getList()) {
                 if (stat instanceof ContentWeightRS cw && cw.map_content_id.equals(e.GUID())) {
                     weight *= 1F + libdata.relicStats.get(cw) / 100F;
                 }
             }
-            return new Weighted<MapContent>(e, weight);
+            // player-stat parallel to ContentWeightRS: the starter's Atlas "event chance" node for this
+            // league raises its weight, so it's more likely to be among the bonus contents picked below
+            float playerBonus = DungeonExileEvents.GET_MAP_CONTENT_WEIGHT_BONUS.callEvents(
+                    new GetMapContentWeightBonusEvent(List.of(p), e.GUID())).bonusPercent;
+            weight *= 1F + playerBonus / 100F;
+            return new Weighted<MapContent>(e, (int) weight);
         }).collect(Collectors.toList());
 
         if (bonus > possible.size()) {
