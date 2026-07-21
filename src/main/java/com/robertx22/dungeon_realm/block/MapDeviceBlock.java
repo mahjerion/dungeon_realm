@@ -126,6 +126,8 @@ public class MapDeviceBlock extends BaseEntityBlock {
 
             data.bonusContents.setupOnMapStart(stack, libdata, p);
 
+            // snapshot the map item before it's consumed, so the MapScreen icon can show its real tooltip
+            data.setSnapshotFrom(stack);
 
             DungeonMapCapability.get(p.level()).data.data.setData(p, data, DungeonMain.MAIN_DUNGEON_STRUCTURE, start.getMiddleBlockPosition(5));
             LibMapCap.get(p.level()).data.setData(p, libdata, DungeonMain.MAIN_DUNGEON_STRUCTURE, start.getMiddleBlockPosition(5));
@@ -156,6 +158,13 @@ public class MapDeviceBlock extends BaseEntityBlock {
 
         var pdata = PlayerDataCapability.get(p);
         pdata.mapTeleports.entranceTeleportLogic(p, DungeonMain.DIMENSION_KEY, be.pos);
+
+        // the entrance teleport is delayed and stats packets are otherwise only sent on kill/chest events,
+        // so sync the joining player now, otherwise their client keeps showing the previous map's data.
+        var dungeonLevel = p.getServer().getLevel(ResourceKey.create(Registries.DIMENSION, DungeonMain.DIMENSION_KEY));
+        if (dungeonLevel != null) {
+            DungeonMain.ifMapData(dungeonLevel, be.pos).ifPresent(x -> x.sendStatsToPlayer(p));
+        }
         return true;
     }
 

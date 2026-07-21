@@ -6,6 +6,7 @@ import com.robertx22.library_of_exile.main.MyPacket;
 import com.robertx22.library_of_exile.packets.ExilePacketContext;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
 
 public class DungeonStatsPacket  extends MyPacket<DungeonStatsPacket>  {
     public int killCompletionPercent;
@@ -15,6 +16,8 @@ public class DungeonStatsPacket  extends MyPacket<DungeonStatsPacket>  {
     public String mapDungeon = "";
     public boolean mapUber;
     public int rarityProgressPercent;
+    // snapshot of the started map's item, sent only on map entry (empty on the frequent event packets)
+    public ItemStack snapshotStack = ItemStack.EMPTY;
 
     public DungeonStatsPacket() {}
 
@@ -38,6 +41,7 @@ public class DungeonStatsPacket  extends MyPacket<DungeonStatsPacket>  {
         this.mapDungeon = friendlyByteBuf.readUtf();
         this.mapUber = friendlyByteBuf.readBoolean();
         this.rarityProgressPercent = friendlyByteBuf.readInt();
+        this.snapshotStack = friendlyByteBuf.readItem();
     }
 
     @Override
@@ -49,6 +53,7 @@ public class DungeonStatsPacket  extends MyPacket<DungeonStatsPacket>  {
         friendlyByteBuf.writeUtf(mapDungeon == null ? "" : mapDungeon);
         friendlyByteBuf.writeBoolean(mapUber);
         friendlyByteBuf.writeInt(rarityProgressPercent);
+        friendlyByteBuf.writeItem(snapshotStack);
     }
 
     @Override
@@ -60,6 +65,11 @@ public class DungeonStatsPacket  extends MyPacket<DungeonStatsPacket>  {
         DungeonStatsStore.setMapDungeon(mapDungeon);
         DungeonStatsStore.setMapUber(mapUber);
         DungeonStatsStore.setRarityProgressPercent(rarityProgressPercent);
+        // only the entry packet carries the snapshot; ignore the empty item on event packets so it
+        // doesn't wipe the stored snapshot
+        if (!snapshotStack.isEmpty()) {
+            DungeonStatsStore.setMapItem(snapshotStack);
+        }
     }
 
     @Override

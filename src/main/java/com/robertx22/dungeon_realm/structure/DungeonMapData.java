@@ -13,9 +13,12 @@ import com.robertx22.library_of_exile.main.Packets;
 import com.robertx22.library_of_exile.utils.RandomUtils;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.TagParser;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -53,6 +56,10 @@ public class DungeonMapData {
     public int processedElitePackDataBlockCount = 0;
     public int processedMiniBossDataBlockCount = 0;
     public String dungeon;
+
+    // SNBT of the map item as it was when the map was started, so the MapScreen icon can show that
+    // item's real tooltip (layout, uber/pinnacle, applied mods) instead of a minimal reconstruction.
+    public String snapshotItemNbt = "";
 
     private int mobBlocksLeftToProcess() {
         return mobDataBlockCount - processedMobDataBlockCount;
@@ -221,16 +228,49 @@ public class DungeonMapData {
     }
 
     public void updateMapDungeonStats(ServerLevel level, BlockPos pos) {
+        checkBossTeleportUnlock(level, pos, calculateKillCompletionPercent());
+        updateMapDungeonStatsWithPacket(level, pos, buildStatsPacket());
+    }
+
+    // builds a snapshot of the current map stats without mutating any map state
+    private DungeonStatsPacket buildStatsPacket() {
         int killedMobsPercent = calculateKilledMobsPercent();
-        int killCompletionPercent = calculateKillCompletionPercent();
         int lootCompletionPercent = calculateLootCompletionPercent();
         DungeonStatsPacket packet = new DungeonStatsPacket(killedMobsPercent, lootCompletionPercent, current_mob_kill_rarity);
-        checkBossTeleportUnlock(level, pos, killCompletionPercent);
-        packet.rarityProgressPercent = killCompletionPercent;
+        packet.rarityProgressPercent = calculateKillCompletionPercent();
         packet.bossTeleportUnlocked = gave_boss_tp;
         packet.mapDungeon = item.dungeon;
         packet.mapUber = item.uber;
-        updateMapDungeonStatsWithPacket(level, pos, packet);
+        return packet;
+    }
+
+    // pushes the current map stats to a single player. sent on map entry so the client's DungeonStatsStore
+    // (read by the MapScreen and HUD) reflects the map just joined instead of the previously entered map,
+    // which otherwise lingers until the next kill/chest event happens to send a stats packet.
+    public void sendStatsToPlayer(Player player) {
+        // the snapshot rides only this entry packet, not the frequent kill/chest packets (it never
+        // changes during a map, so re-sending it every event would be wasted bandwidth)
+        var packet = buildStatsPacket();
+        packet.snapshotStack = getSnapshotStack();
+        Packets.sendToClient(player, packet);
+    }
+
+    // captures the map item as it is right now (single count) so its tooltip can be shown later
+    public void setSnapshotFrom(ItemStack stack) {
+        var copy = stack.copy();
+        copy.setCount(1);
+        this.snapshotItemNbt = copy.save(new CompoundTag()).toString();
+    }
+
+    public ItemStack getSnapshotStack() {
+        if (snapshotItemNbt == null || snapshotItemNbt.isEmpty()) {
+            return ItemStack.EMPTY;
+        }
+        try {
+            return ItemStack.of(TagParser.parseTag(snapshotItemNbt));
+        } catch (Exception e) {
+            return ItemStack.EMPTY;
+        }
     }
 
     private void checkBossTeleportUnlock(ServerLevel level, BlockPos pos, int rarityProgressPercent) {

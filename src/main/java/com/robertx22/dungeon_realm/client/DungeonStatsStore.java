@@ -1,5 +1,7 @@
 package com.robertx22.dungeon_realm.client;
 
+import net.minecraft.world.item.ItemStack;
+
 public class DungeonStatsStore {
     private static int killCompletionPercent;
     private static int lootCompletionPercent;
@@ -8,6 +10,7 @@ public class DungeonStatsStore {
     private static String mapDungeon;
     private static boolean mapUber;
     private static int rarityProgressPercent;
+    private static ItemStack mapItem = ItemStack.EMPTY;
 
     public static void setKillCompletionPercent(int killCompletionPercent) {
         DungeonStatsStore.killCompletionPercent = killCompletionPercent;
@@ -63,5 +66,13 @@ public class DungeonStatsStore {
 
     public static int getRarityProgressPercent() {
         return DungeonStatsStore.rarityProgressPercent;
+    }
+
+    public static void setMapItem(ItemStack mapItem) {
+        DungeonStatsStore.mapItem = mapItem;
+    }
+
+    public static ItemStack getMapItem() {
+        return DungeonStatsStore.mapItem;
     }
 }
