@@ -1,5 +1,7 @@
 package com.robertx22.dungeon_realm.database.data_blocks.mobs;
 
+import com.robertx22.dungeon_realm.api.DungeonExileEvents;
+import com.robertx22.dungeon_realm.api.GetExtraMapBossChanceEvent;
 import com.robertx22.dungeon_realm.capability.DungeonEntityData;
 import com.robertx22.dungeon_realm.database.holders.DungeonRelicStats;
 import com.robertx22.dungeon_realm.main.DataBlockTags;
@@ -11,6 +13,7 @@ import com.robertx22.library_of_exile.util.wiki.WikiEntry;
 import com.robertx22.library_of_exile.utils.RandomUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
@@ -32,12 +35,17 @@ public class MapBossMB extends MapDataBlock {
 
         int amount = 1;
 
+        // extra map boss chance = relic stat + the player-stat parallel (Atlas additional_boss_chance).
+        // Player bonus applies even if there's no relic data on this map.
+        float extraBossChance = 0;
         var data = LibMapCap.getData(level, pos);
         if (data != null) {
-            float chance = data.relicStats.get(DungeonRelicStats.INSTANCE.EXTRA_MAP_BOSS_CHANCE.get());
-            if (RandomUtils.roll(chance)) {
-                amount++;
-            }
+            extraBossChance += data.relicStats.get(DungeonRelicStats.INSTANCE.EXTRA_MAP_BOSS_CHANCE.get());
+        }
+        extraBossChance += DungeonExileEvents.GET_EXTRA_MAP_BOSS_CHANCE.callEvents(
+                new GetExtraMapBossChanceEvent(DungeonMain.MAIN_DUNGEON_STRUCTURE.getAllPlayersInMap((ServerLevel) level, pos))).bonusPercent;
+        if (extraBossChance > 0 && RandomUtils.roll(extraBossChance)) {
+            amount++;
         }
 
         int finalAmount = amount;

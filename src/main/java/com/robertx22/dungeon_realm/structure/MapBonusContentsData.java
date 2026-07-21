@@ -2,6 +2,7 @@ package com.robertx22.dungeon_realm.structure;
 
 
 import com.robertx22.dungeon_realm.api.DungeonExileEvents;
+import com.robertx22.dungeon_realm.api.GetBonusContentChanceEvent;
 import com.robertx22.dungeon_realm.api.GetMapContentWeightBonusEvent;
 import com.robertx22.dungeon_realm.database.holders.DungeonBonusContents;
 import com.robertx22.dungeon_realm.database.holders.DungeonRelicStats;
@@ -103,6 +104,14 @@ public class MapBonusContentsData {
         int bonus = map.bonus_contents;
 
         if (RandomUtils.roll(libdata.relicStats.get(DungeonRelicStats.INSTANCE.BONUS_CONTENT_CHANCE))) {
+            bonus++;
+        }
+
+        // player-stat parallel to BONUS_CONTENT_CHANCE: the Atlas double_event_chance node rolls for
+        // one more bonus event (league encounter) on top of the relic roll.
+        float playerBonusChance = DungeonExileEvents.GET_BONUS_CONTENT_CHANCE.callEvents(
+                new GetBonusContentChanceEvent(p)).bonusPercent;
+        if (RandomUtils.roll(playerBonusChance)) {
             bonus++;
         }
 

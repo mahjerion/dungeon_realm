@@ -1,6 +1,7 @@
 package com.robertx22.dungeon_realm.main;
 
 import com.robertx22.dungeon_realm.api.DungeonExileEvents;
+import com.robertx22.dungeon_realm.api.GetDuplicateMapChanceEvent;
 import com.robertx22.dungeon_realm.api.GetUberFragmentFindBonusEvent;
 import com.robertx22.dungeon_realm.api.OnMapFullyClearedEvent;
 import com.robertx22.dungeon_realm.capability.DungeonEntityCapability;
@@ -132,6 +133,21 @@ public class DungeonEvents {
                             if (RandomUtils.roll(mapchance)) {
                                 mob.spawnAtLocation(DungeonMapItem.newRandomMapItemStack(new DungeonMapGenSettings(), killer));
                             }
+                        }
+                    }
+
+                    // duplicate map: the killer's Atlas duplicate_map_chance rolls to also drop an exact
+                    // copy of the run map (rebuilt from the map-start snapshot). Killer-side, matching the
+                    // uber fragment drop that shares this hook.
+                    if (killer != null) {
+                        float dupeChance = DungeonExileEvents.GET_DUPLICATE_MAP_CHANCE.callEvents(new GetDuplicateMapChanceEvent(killer)).bonusPercent;
+                        if (dupeChance > 0 && RandomUtils.roll(dupeChance)) {
+                            DungeonMain.ifMapData(level, pos).ifPresent(mapData -> {
+                                var copy = mapData.getSnapshotStack();
+                                if (!copy.isEmpty()) {
+                                    mob.spawnAtLocation(copy.copy());
+                                }
+                            });
                         }
                     }
 
