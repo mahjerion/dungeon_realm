@@ -18,6 +18,7 @@ public class DungeonExileEvents {
     public static ExileEventCaller<GetExtraMapBossChanceEvent> GET_EXTRA_MAP_BOSS_CHANCE = new ExileEventCaller<>();
     public static ExileEventCaller<GetDuplicateMapChanceEvent> GET_DUPLICATE_MAP_CHANCE = new ExileEventCaller<>();
     public static ExileEventCaller<GetUberFragmentFindBonusEvent> GET_UBER_FRAGMENT_FIND_BONUS = new ExileEventCaller<>();
+    public static ExileEventCaller<GetRelicFindBonusEvent> GET_RELIC_FIND_BONUS = new ExileEventCaller<>();
     public static ExileEventCaller<GetMapContentWeightBonusEvent> GET_MAP_CONTENT_WEIGHT_BONUS = new ExileEventCaller<>();
     public static ExileEventCaller<GetBonusContentChanceEvent> GET_BONUS_CONTENT_CHANCE = new ExileEventCaller<>();
     public static ExileEventCaller<OpenAtlasMapEvent> OPEN_ATLAS_MAP = new ExileEventCaller<>();

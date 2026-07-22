@@ -2,6 +2,7 @@ package com.robertx22.dungeon_realm.main;
 
 import com.robertx22.dungeon_realm.api.DungeonExileEvents;
 import com.robertx22.dungeon_realm.api.GetDuplicateMapChanceEvent;
+import com.robertx22.dungeon_realm.api.GetRelicFindBonusEvent;
 import com.robertx22.dungeon_realm.api.GetUberFragmentFindBonusEvent;
 import com.robertx22.dungeon_realm.api.OnMapFullyClearedEvent;
 import com.robertx22.dungeon_realm.capability.DungeonEntityCapability;
@@ -91,15 +92,23 @@ public class DungeonEvents {
 
 
                 // hm, 3 relics per uber and 1 per map boss is ok?
+                Player killer = event.getSource().getEntity() instanceof Player p ? p : null;
+
                 if (dungeonEntityData.isUberBoss) {
                     for (int i = 0; i < 3; i++) {
                         mob.spawnAtLocation(RelicGenerator.randomRelicItem(Optional.empty(), new RelicGenerator.Settings()));
+                        if (killer != null && RandomUtils.roll(DungeonExileEvents.GET_RELIC_FIND_BONUS.callEvents(new GetRelicFindBonusEvent(killer)).bonusPercent)) {
+                            mob.spawnAtLocation(RelicGenerator.randomRelicItem(Optional.empty(), new RelicGenerator.Settings()));
+                        }
                     }
                 }
 
                 if (dungeonEntityData.isFinalMapBoss) {
 
                     mob.spawnAtLocation(RelicGenerator.randomRelicItem(Optional.empty(), new RelicGenerator.Settings()));
+                    if (killer != null && RandomUtils.roll(DungeonExileEvents.GET_RELIC_FIND_BONUS.callEvents(new GetRelicFindBonusEvent(killer)).bonusPercent)) {
+                        mob.spawnAtLocation(RelicGenerator.randomRelicItem(Optional.empty(), new RelicGenerator.Settings()));
+                    }
 
                     DungeonMain.ifMapData(level, pos).ifPresent(mapData -> {
                         DungeonExileEvents.ON_MAP_FULLY_CLEARED.callEvents(new OnMapFullyClearedEvent(mapData.dungeon,
@@ -108,8 +117,6 @@ public class DungeonEvents {
                     });
 
                     var data = LibMapCap.getData(level, pos);
-
-                    Player killer = event.getSource().getEntity() instanceof Player p ? p : null;
 
                     float chance = DungeonConfig.get().UBER_FRAG_DROPRATE.get().floatValue();
 
@@ -209,6 +216,18 @@ public class DungeonEvents {
                         x.lootedChests++;
                         x.updateMapDungeonStats((ServerLevel) level, pos);
                     });
+
+                    // relic find: same Atlas stat as the bonus boss-relic roll, applied to give dungeon
+                    // chests a chance to contain a relic too (they never granted items before this).
+                    float relicChance = DungeonExileEvents.GET_RELIC_FIND_BONUS.callEvents(new GetRelicFindBonusEvent(event.player)).bonusPercent;
+                    if (relicChance > 0 && RandomUtils.roll(relicChance)) {
+                        for (int i = 0; i < event.inventory.getContainerSize(); i++) {
+                            if (event.inventory.getItem(i).isEmpty()) {
+                                event.inventory.setItem(i, RelicGenerator.randomRelicItem(Optional.empty(), new RelicGenerator.Settings()));
+                                break;
+                            }
+                        }
+                    }
                 }
             }
         });
