@@ -17,7 +17,7 @@ public class DungeonItemReqs extends ExileKeyHolder<ItemRequirement> {
         super(modRegisterInfo);
     }
 
-    public ExileKey<ItemRequirement, KeyInfo> IS_MAP_ITEM = ExileKey.ofId(this, "is_map", x -> new BeMapReq(x.GUID()));
+    public ExileKey<ItemRequirement, KeyInfo> IS_MAP_ITEM = ExileKey.ofId(this, "is_dungeon_map_item", x -> new BeMapReq(x.GUID()));
     public ExileKey<ItemRequirement, KeyInfo> IS_NOT_UBER = ExileKey.ofId(this, "is_not_uber", x -> new BeNotUberReq(x.GUID()));
 
 

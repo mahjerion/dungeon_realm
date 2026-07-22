@@ -38,7 +38,7 @@
 	"item.dungeon_realm.uber_fragment": "终极碎片",
 	"item.dungeon_realm.uber_upgrade": "终极地牢地图升级",
 	"library_of_exile.item_modification.uber_upgrade": "增加终极头目挑战房",
-	"library_of_exile.item_requirement.is_map": "必须是地牢地图物品",
+	"library_of_exile.item_requirement.is_dungeon_map_item": "必须是地牢地图物品",
 	"library_of_exile.league.reward_room": "奖励房",
 	"library_of_exile.relic_stat.bonus_boss_frag_chance": "%1$s 增长地图头目掉落终极碎片几率",
 	"library_of_exile.relic_stat.bonus_content_chance": "%1$s 生成额外内容几率",
