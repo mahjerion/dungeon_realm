@@ -42,6 +42,32 @@ public class DungeonConfig {
 
     public ForgeConfigSpec.IntValue MAP_PERCENT_COMPLETE_NEEDED_FOR_BOSS_ARENA;
 
+    public ForgeConfigSpec.IntValue MIN_LEVEL_FOR_PERFECTED_SEED;
+
+    public ForgeConfigSpec.IntValue IMPRISONED_MONSTER_CURRENCY_REWARD;
+    public ForgeConfigSpec.DoubleValue IMPRISONED_MONSTER_SEED_DROP_CHANCE;
+    public ForgeConfigSpec.DoubleValue IMPRISONED_MONSTER_PERFECTED_SEED_CHANCE;
+
+    public ForgeConfigSpec.IntValue STRONGBOX_GUARDIAN_COUNT;
+    public ForgeConfigSpec.IntValue STRONGBOX_LOOT_ROLLS;
+
+    public ForgeConfigSpec.DoubleValue SHRINE_BUFF_RADIUS;
+
+    public ForgeConfigSpec.IntValue STRONGBOX_CATEGORY_ITEM_MIN;
+    public ForgeConfigSpec.IntValue STRONGBOX_CATEGORY_ITEM_MAX;
+
+    public ForgeConfigSpec.IntValue STRONGBOX_CATEGORY_WEIGHT_CURRENCY;
+    public ForgeConfigSpec.IntValue STRONGBOX_CATEGORY_WEIGHT_WEAPON;
+    public ForgeConfigSpec.IntValue STRONGBOX_CATEGORY_WEIGHT_ARMOR;
+    public ForgeConfigSpec.IntValue STRONGBOX_CATEGORY_WEIGHT_JEWELRY;
+    public ForgeConfigSpec.IntValue STRONGBOX_CATEGORY_WEIGHT_JEWEL;
+    public ForgeConfigSpec.IntValue STRONGBOX_CATEGORY_WEIGHT_OMEN;
+    public ForgeConfigSpec.IntValue STRONGBOX_CATEGORY_WEIGHT_SUPPORT_GEM;
+    public ForgeConfigSpec.IntValue STRONGBOX_CATEGORY_WEIGHT_AURA_GEM;
+    public ForgeConfigSpec.IntValue STRONGBOX_CATEGORY_WEIGHT_RUNE;
+    public ForgeConfigSpec.IntValue STRONGBOX_CATEGORY_WEIGHT_SOCKETABLE_GEM;
+    public ForgeConfigSpec.IntValue STRONGBOX_CATEGORY_WEIGHT_UNIQUE;
+
     public static DungeonConfig get() {
         return CONFIG;
     }
@@ -108,6 +134,50 @@ public class DungeonConfig {
 
         MAP_PERCENT_COMPLETE_NEEDED_FOR_BOSS_ARENA = b.comment("Kill completion percent needed before players can teleport straight to the map boss from the Map gui, without needing to find the boss teleport block.")
                 .defineInRange("map_percent_complete_needed_for_boss_arena", 30, 5, 99);
+
+        MIN_LEVEL_FOR_PERFECTED_SEED = b.comment("Minimum loot level required for the Imprisoned Monster's bonus 'Seed' drop to be able to roll the rarer Perfected tier. Below this level, only the base Seed can drop.")
+                .defineInRange("min_level_for_perfected_seed", 80, 0, 1000);
+
+        IMPRISONED_MONSTER_CURRENCY_REWARD = b.comment("Guaranteed number of currency items dropped when the Imprisoned Monster is slain.")
+                .defineInRange("imprisoned_monster_currency_reward", 3, 0, 20);
+
+        IMPRISONED_MONSTER_SEED_DROP_CHANCE = b.comment("Chance for the Imprisoned Monster to additionally drop a bonus 'Seed' potential-restore currency, default 25%")
+                .defineInRange("imprisoned_monster_seed_drop_chance", 25D, 0, 100);
+
+        IMPRISONED_MONSTER_PERFECTED_SEED_CHANCE = b.comment("Of an Imprisoned Monster Seed drop (see imprisoned_monster_seed_drop_chance), the chance it's the rarer Perfected tier instead of the base tier, default 10%")
+                .defineInRange("imprisoned_monster_perfected_seed_chance", 10D, 0, 100);
+
+        STRONGBOX_GUARDIAN_COUNT = b.comment("Number of guardian mobs released when a Strongbox is opened.")
+                .defineInRange("strongbox_guardian_count", 8, 0, 50);
+
+        STRONGBOX_LOOT_ROLLS = b.comment("Number of independent chest-loot rolls a Strongbox pays out once its guardians are dead.")
+                .defineInRange("strongbox_loot_rolls", 3, 0, 20);
+
+        SHRINE_BUFF_RADIUS = b.comment("Radius (blocks) around a Shrine that players must be within to receive its buff.")
+                .defineInRange("shrine_buff_radius", 12D, 1, 128);
+
+        STRONGBOX_CATEGORY_ITEM_MIN = b.comment("Minimum number of guaranteed-category items (see strongbox_category_weights) a Strongbox pays out on top of its normal chest loot rolls. Each one independently rolls its own category.")
+                .defineInRange("strongbox_category_item_min", 1, 0, 100);
+
+        STRONGBOX_CATEGORY_ITEM_MAX = b.comment("Maximum number of guaranteed-category items a Strongbox pays out (inclusive). Must be >= strongbox_category_item_min.")
+                .defineInRange("strongbox_category_item_max", 6, 0, 100);
+
+        b.comment("Relative weights for each guaranteed-category item roll a Strongbox pays out on top of its normal chest loot rolls. Higher = more common.")
+                .push("strongbox_category_weights");
+
+        STRONGBOX_CATEGORY_WEIGHT_CURRENCY = b.defineInRange("currency", 500, 0, 100000);
+        STRONGBOX_CATEGORY_WEIGHT_WEAPON = b.defineInRange("weapon", 1000, 0, 100000);
+        STRONGBOX_CATEGORY_WEIGHT_ARMOR = b.defineInRange("armor", 1000, 0, 100000);
+        STRONGBOX_CATEGORY_WEIGHT_JEWELRY = b.defineInRange("jewelry", 1000, 0, 100000);
+        STRONGBOX_CATEGORY_WEIGHT_JEWEL = b.defineInRange("jewel", 250, 0, 100000);
+        STRONGBOX_CATEGORY_WEIGHT_OMEN = b.defineInRange("omen", 250, 0, 100000);
+        STRONGBOX_CATEGORY_WEIGHT_SUPPORT_GEM = b.defineInRange("support_gem", 500, 0, 100000);
+        STRONGBOX_CATEGORY_WEIGHT_AURA_GEM = b.defineInRange("aura_gem", 500, 0, 100000);
+        STRONGBOX_CATEGORY_WEIGHT_RUNE = b.defineInRange("rune", 250, 0, 100000);
+        STRONGBOX_CATEGORY_WEIGHT_SOCKETABLE_GEM = b.defineInRange("socketable_gem", 250, 0, 100000);
+        STRONGBOX_CATEGORY_WEIGHT_UNIQUE = b.defineInRange("unique", 50, 0, 100000);
+
+        b.pop();
 
         b.pop();
     }

@@ -10,4 +10,10 @@ public class DungeonEntityData {
     public boolean isMiniBossMob = false;
 
     public boolean isPackMob = false;
+
+    // ties a mob back to the Strongbox that spawned it (see StrongboxBlock in the main mod's
+    // dungeon-realm glue package), so its death can decrement that box's guarded-remaining counter
+    // via a LivingDeathEvent hook instead of polling isAlive() by UUID every tick.
+    public boolean isStrongboxGuardian = false;
+    public long strongboxPos = 0L;
 }
