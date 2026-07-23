@@ -112,6 +112,18 @@ public class DungeonMapData {
                 var block = ForgeRegistries.BLOCKS.getValue(new ResourceLocation(mc.block_id));
                 level.setBlock(pos, block.defaultBlockState(), Block.UPDATE_ALL);
                 bonusContents.map.get(en.getKey()).remainingSpawns--;
+
+                // purely visual: if a "<block_id>_top" companion block is registered (see
+                // BonusEncounterTopperBlock), stack it on top to make the content taller/more
+                // noticeable, skipping silently if there's no headroom - never blocks the base above.
+                var companionLoc = new ResourceLocation(mc.block_id + "_top");
+                if (ForgeRegistries.BLOCKS.containsKey(companionLoc)) {
+                    BlockPos above = pos.above();
+                    if (level.getBlockState(above).canBeReplaced()) {
+                        var companion = ForgeRegistries.BLOCKS.getValue(companionLoc);
+                        level.setBlock(above, companion.defaultBlockState(), Block.UPDATE_ALL);
+                    }
+                }
             }
         }
     }
