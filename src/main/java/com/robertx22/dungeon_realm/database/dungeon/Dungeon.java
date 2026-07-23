@@ -97,6 +97,20 @@ public class Dungeon implements IAutoGson<Dungeon>, JsonExileRegistry<Dungeon>, 
             return this;
         }
 
+        // blocks per side of every room in this dungeon. must be a multiple of 16, every room of the
+        // dungeon has to be built to it.
+        public Builder roomSize(int blocks) {
+            this.dungeon.data.room_size = blocks;
+            return this;
+        }
+
+        // overrides the global MIN/MAX_MAP_ROOMS config for this dungeon only
+        public Builder rooms(int min, int max) {
+            this.dungeon.data.min_rooms = min;
+            this.dungeon.data.max_rooms = max;
+            return this;
+        }
+
 
         public Dungeon getDungeon() {
             return dungeon;

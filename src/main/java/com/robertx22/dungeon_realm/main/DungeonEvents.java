@@ -242,7 +242,8 @@ public class DungeonEvents {
                         if (x.bonusContents.totalGenDungeonChunks < 1) {
                             var built = DungeonMain.MAIN_DUNGEON_STRUCTURE.getMap(event.cp);
                             built.build();
-                            x.bonusContents.totalGenDungeonChunks = built.builtDungeon.amount;
+                            // chunks, not rooms - processedChunks below counts chunks, and a room can cover several
+                            x.bonusContents.totalGenDungeonChunks = built.builtDungeon.getTotalChunkCount();
                         }
                     });
                 }

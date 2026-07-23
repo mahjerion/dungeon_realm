@@ -7,6 +7,7 @@ import com.robertx22.dungeon_realm.item.DungeonMapItem;
 import com.robertx22.dungeon_realm.main.DungeonMain;
 import com.robertx22.library_of_exile.dimension.MapGenerationUTIL;
 import com.robertx22.library_of_exile.dimension.structure.dungeon.DungeonBuilder;
+import com.robertx22.library_of_exile.dimension.structure.dungeon.DungeonData;
 import com.robertx22.library_of_exile.dimension.structure.dungeon.DungeonStructure;
 import com.robertx22.library_of_exile.dimension.structure.dungeon.IDungeon;
 import com.robertx22.library_of_exile.utils.RandomUtils;
@@ -53,10 +54,15 @@ public class DungeonMapStructure extends DungeonStructure {
         var dungeon = dungeons.stream().filter(x -> x.id.equals(mapDungeon)).findFirst();
         IDungeon mapFinalDungeon = dungeon.orElseGet(() -> RandomUtils.weightedRandom(dungeons, rand.nextDouble()));;
 
+        // a dungeon with bigger rooms is a lot more to walk through, so it can ask for fewer of them
+        var data = mapFinalDungeon.getDungeonData();
+        int minRooms = data.min_rooms > 0 ? data.min_rooms : DungeonConfig.get().MIN_MAP_ROOMS.get();
+        int maxRooms = data.max_rooms > 0 ? data.max_rooms : DungeonConfig.get().MAX_MAP_ROOMS.get();
+
         var settings = new DungeonBuilder.Settings(
             rand,
-            DungeonConfig.get().MIN_MAP_ROOMS.get(),
-            DungeonConfig.get().MAX_MAP_ROOMS.get(),
+            minRooms,
+            maxRooms,
             mapFinalDungeon
         );
 
@@ -77,16 +83,31 @@ public class DungeonMapStructure extends DungeonStructure {
         return 50;
     }
 
-    public static int DUNGEON_LENGTH = 30;
+    // the room grid is always this many cells, whatever a dungeon's room size is. bigger rooms make a
+    // bigger dungeon, not a dungeon with fewer rooms.
+    public static final int GRID_CELLS = 20;
+    // widest footprint any dungeon can ever have, in chunks
+    public static final int MAX_GRID_SPAN_CHUNKS = GRID_CELLS * DungeonData.MAX_ROOM_CHUNKS;
+
+    // spacing between dungeon instances, in chunks. must fit MAX_GRID_SPAN_CHUNKS plus a gap, so that a
+    // player at the edge of one dungeon can never load chunks belonging to the next one.
+    // WARNING: changing this or START_OFFSET re-grids where every instance lives, which invalidates
+    // dungeons already generated in existing worlds. it's sized for the largest supported room so it
+    // never has to change again.
+    public static int DUNGEON_LENGTH = 90;
+
+    // where inside each spacing period a dungeon starts. this has to be a single constant covering every
+    // room size, because the start is resolved from chunk coords alone, before we know which dungeon (and
+    // therefore which room size) is there. the grid grows both ways from it, so it must leave
+    // MAX_GRID_SPAN_CHUNKS/2 on each side without crossing into the neighbouring period.
+    public static final int START_OFFSET = MAX_GRID_SPAN_CHUNKS / 2 + 1;
 
     @Override
     protected ChunkPos INTERNALgetStartChunkPos(ChunkPos cp) {
-        int chunkX = cp.x;
-        int chunkZ = cp.z;
-        int distToEntranceX = 11 - (chunkX % DUNGEON_LENGTH);
-        int distToEntranceZ = 11 - (chunkZ % DUNGEON_LENGTH);
-        chunkX += distToEntranceX;
-        chunkZ += distToEntranceZ;
-        return new ChunkPos(chunkX, chunkZ);
+        // floorMod, not %: % is negative for negative chunk coords, which made this non idempotent
+        // out there (-31 -> -19, then -19 -> 11) and broke the uniform instance grid.
+        return new ChunkPos(
+                cp.x + START_OFFSET - Math.floorMod(cp.x, DUNGEON_LENGTH),
+                cp.z + START_OFFSET - Math.floorMod(cp.z, DUNGEON_LENGTH));
     }
 }
