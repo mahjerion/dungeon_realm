@@ -22,19 +22,15 @@ public class DungeonStatsOverlay {
         var window = minecraft.getWindow();
 
         var mapRarityName = getMapRarityName();
-        var killCompletion = getMapKillCompletion();
-        var lootCompletion = getMapLootCompletion();
+        var progress = getMapProgress();
 
         int contentPadding = 2;
         int totalPadding = contentPadding + CORNER_SIZE;
 
-        int maxWidth = Math.max(
-            Math.max(font.width(mapRarityName), font.width(killCompletion)),
-            font.width(lootCompletion)
-        );
+        int maxWidth = Math.max(font.width(mapRarityName), font.width(progress));
 
         int boxW = maxWidth + totalPadding * 2;
-        int boxH = (font.lineHeight * 4) + totalPadding * 2;
+        int boxH = (font.lineHeight * 3) + totalPadding * 2;
         int edgePadding = 5;
 
         int screenWidth = window.getGuiScaledWidth();
@@ -43,7 +39,7 @@ public class DungeonStatsOverlay {
         int x = screenWidth - boxW - edgePadding;
         int y = (screenHeight - boxH) / 2;
 
-        renderAt(g, x, y, boxW, boxH, mapRarityName, killCompletion, lootCompletion);
+        renderProgressAt(g, x, y, boxW, boxH, mapRarityName, progress);
     }
 
     public static MutableComponent getMapLootCompletion() {
@@ -61,6 +57,16 @@ public class DungeonStatsOverlay {
         return DungeonWords.DUNGEON_STATS_KILL_COMPLETION.get(
             Component.literal(String.valueOf(killPercent)).withStyle(style -> style.withColor(killColor)),
             Component.literal("100").withStyle(ChatFormatting.YELLOW)
+        );
+    }
+
+    // overall map progress (mirrors the kill completion percent that actually gates rarity
+    // upgrades/boss teleport), shown as a single stat instead of separate kill/loot lines.
+    public static MutableComponent getMapProgress() {
+        int progressPercent = DungeonStatsStore.getKillCompletionPercent();
+        int progressColor = interpolateColor(ChatFormatting.GRAY.getColor(), ChatFormatting.YELLOW.getColor(), progressPercent / 100.0f);
+        return DungeonWords.DUNGEON_STATS_PROGRESS.get(
+            Component.literal(String.valueOf(progressPercent)).withStyle(style -> style.withColor(progressColor))
         );
     }
 
@@ -96,6 +102,28 @@ public class DungeonStatsOverlay {
         // Right-align loot completion
         int lootX = x + boxW - totalPadding - font.width(lootCompletion);
         g.drawString(font, lootCompletion, lootX, ty, 0xFFFFFFFF);
+    }
+
+    // single-stat variant: rarity name + overall progress only (no kill/loot breakdown).
+    public static void renderProgressAt(GuiGraphics g, int x, int y, int boxW, int boxH, Component mapRarityName, Component progress) {
+        var font = Minecraft.getInstance().font;
+
+        renderNinePatchWithFallback(g, x, y, boxW, boxH);
+
+        int contentPadding = 2;
+        int totalPadding = contentPadding + CORNER_SIZE;
+        var ty = y + totalPadding;
+
+        var mapRarityId = DungeonStatsStore.getMapRarityId();
+        var mapRarity = LibDatabase.MapFinishRarity().get(mapRarityId);
+        int centerX = x + boxW / 2;
+        var labelColor = mapRarity.textFormatting().getColor();
+        g.drawCenteredString(font, mapRarityName, centerX, ty, labelColor);
+        ty += font.lineHeight * 2;
+
+        // Right-align progress
+        int progressX = x + boxW - totalPadding - font.width(progress);
+        g.drawString(font, progress, progressX, ty, 0xFFFFFFFF);
     }
 
     /**

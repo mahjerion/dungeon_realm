@@ -51,14 +51,15 @@ public enum DungeonWords implements ITranslated {
     MAP_NAME_UNDEFINED("<undefined>"),
     DUNGEON_STATS_KILL_COMPLETION("Kill: %1$s/%2$s%%"),
     DUNGEON_STATS_LOOT_COMPLETION("Loot: %1$s/%2$s%%"),
+    DUNGEON_STATS_PROGRESS("Progress: %1$s%%"),
     BOSS_TELEPORT_UNLOCKED("Your exploration of the map has yielded results! Open the Main Hub's Map screen to teleport straight to the Boss."),
     DUNGEON_STATS_LEAGUE_CONTENT_HEADER("Active Events"),
     LEAGUE_CONTENT_PROPHECY("Prophecy"),
     LEAGUE_CONTENT_STRONGBOX("Strongbox"),
-    LEAGUE_CONTENT_IMPRISONED_MONSTER("Imprisoned Monster"),
+    LEAGUE_CONTENT_IMPRISONED_MONSTER("Imprisoned M."),
     LEAGUE_CONTENT_SHRINE("Shrine"),
     LEAGUE_CONTENT_THE_HARVEST("Harvest"),
-    LEAGUE_CONTENT_OBELISK("Ancient Obelisk"),
+    LEAGUE_CONTENT_OBELISK("Obelisk"),
     ;
 
     public String name;
