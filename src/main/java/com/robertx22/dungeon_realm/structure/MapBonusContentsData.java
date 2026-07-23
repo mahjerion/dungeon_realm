@@ -27,6 +27,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class MapBonusContentsData {
 
@@ -158,6 +159,15 @@ public class MapBonusContentsData {
 
     public BonusContentData get(MapStructure m) {
         return map.getOrDefault(m.guid(), BonusContentData.EMPTY);
+    }
+
+    // ids of league content rolled for this map instance, excluding uber_boss (that's shown
+    // separately via DungeonStatsStore.isMapUber()). Sorted for a stable display order.
+    public List<String> getRolledLeagueContentIds() {
+        return map.keySet().stream()
+                .filter(id -> !id.equals(DungeonBonusContents.INSTANCE.UBER_BOSS.get().GUID()))
+                .sorted()
+                .collect(Collectors.toList());
     }
 
 }

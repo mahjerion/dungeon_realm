@@ -2,6 +2,9 @@ package com.robertx22.dungeon_realm.client;
 
 import net.minecraft.world.item.ItemStack;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class DungeonStatsStore {
     private static int killCompletionPercent;
     private static int lootCompletionPercent;
@@ -11,6 +14,7 @@ public class DungeonStatsStore {
     private static boolean mapUber;
     private static int rarityProgressPercent;
     private static ItemStack mapItem = ItemStack.EMPTY;
+    private static List<String> bonusContentIds = new ArrayList<>();
 
     public static void setKillCompletionPercent(int killCompletionPercent) {
         DungeonStatsStore.killCompletionPercent = killCompletionPercent;
@@ -74,5 +78,13 @@ public class DungeonStatsStore {
 
     public static ItemStack getMapItem() {
         return DungeonStatsStore.mapItem;
+    }
+
+    public static void setBonusContentIds(List<String> bonusContentIds) {
+        DungeonStatsStore.bonusContentIds = bonusContentIds != null ? bonusContentIds : new ArrayList<>();
+    }
+
+    public static List<String> getBonusContentIds() {
+        return DungeonStatsStore.bonusContentIds;
     }
 }

@@ -101,7 +101,7 @@ public class DungeonStatsOverlay {
     /**
      * Attempts to render nine-patch texture, falls back to solid color if texture is missing.
      */
-    private static void renderNinePatchWithFallback(GuiGraphics g, int x, int y, int width, int height) {
+    public static void renderNinePatchWithFallback(GuiGraphics g, int x, int y, int width, int height) {
         try {
             renderNinePatch(g, x, y, width, height);
         } catch (Exception e) {

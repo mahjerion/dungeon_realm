@@ -8,6 +8,9 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class DungeonStatsPacket  extends MyPacket<DungeonStatsPacket>  {
     public int killCompletionPercent;
     public int lootCompletionPercent;
@@ -18,6 +21,8 @@ public class DungeonStatsPacket  extends MyPacket<DungeonStatsPacket>  {
     public int rarityProgressPercent;
     // snapshot of the started map's item, sent only on map entry (empty on the frequent event packets)
     public ItemStack snapshotStack = ItemStack.EMPTY;
+    // league content ids rolled for this map instance (see MapBonusContentsData.getRolledLeagueContentIds)
+    public List<String> bonusContentIds = new ArrayList<>();
 
     public DungeonStatsPacket() {}
 
@@ -42,6 +47,11 @@ public class DungeonStatsPacket  extends MyPacket<DungeonStatsPacket>  {
         this.mapUber = friendlyByteBuf.readBoolean();
         this.rarityProgressPercent = friendlyByteBuf.readInt();
         this.snapshotStack = friendlyByteBuf.readItem();
+        int bonusContentCount = friendlyByteBuf.readInt();
+        this.bonusContentIds = new ArrayList<>();
+        for (int i = 0; i < bonusContentCount; i++) {
+            this.bonusContentIds.add(friendlyByteBuf.readUtf());
+        }
     }
 
     @Override
@@ -54,6 +64,10 @@ public class DungeonStatsPacket  extends MyPacket<DungeonStatsPacket>  {
         friendlyByteBuf.writeBoolean(mapUber);
         friendlyByteBuf.writeInt(rarityProgressPercent);
         friendlyByteBuf.writeItem(snapshotStack);
+        friendlyByteBuf.writeInt(bonusContentIds.size());
+        for (String id : bonusContentIds) {
+            friendlyByteBuf.writeUtf(id);
+        }
     }
 
     @Override
@@ -65,6 +79,7 @@ public class DungeonStatsPacket  extends MyPacket<DungeonStatsPacket>  {
         DungeonStatsStore.setMapDungeon(mapDungeon);
         DungeonStatsStore.setMapUber(mapUber);
         DungeonStatsStore.setRarityProgressPercent(rarityProgressPercent);
+        DungeonStatsStore.setBonusContentIds(bonusContentIds);
         // only the entry packet carries the snapshot; ignore the empty item on event packets so it
         // doesn't wipe the stored snapshot
         if (!snapshotStack.isEmpty()) {

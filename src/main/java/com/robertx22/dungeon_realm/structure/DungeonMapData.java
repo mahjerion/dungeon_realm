@@ -227,6 +227,7 @@ public class DungeonMapData {
         packet.bossTeleportUnlocked = gave_boss_tp;
         packet.mapDungeon = item.dungeon;
         packet.mapUber = item.uber;
+        packet.bonusContentIds = bonusContents.getRolledLeagueContentIds();
         updateMapDungeonStatsWithPacket(level, pos, packet);
     }
 
@@ -253,6 +254,7 @@ public class DungeonMapData {
         packet.bossTeleportUnlocked = gave_boss_tp;
         packet.mapDungeon = item.dungeon;
         packet.mapUber = item.uber;
+        packet.bonusContentIds = bonusContents.getRolledLeagueContentIds();
         return packet;
     }
 

@@ -4,6 +4,7 @@ import com.robertx22.library_of_exile.localization.ExileTranslation;
 import com.robertx22.library_of_exile.localization.ITranslated;
 import com.robertx22.library_of_exile.localization.TranslationBuilder;
 import com.robertx22.library_of_exile.localization.TranslationType;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 
 import java.util.Locale;
@@ -51,6 +52,13 @@ public enum DungeonWords implements ITranslated {
     DUNGEON_STATS_KILL_COMPLETION("Kill: %1$s/%2$s%%"),
     DUNGEON_STATS_LOOT_COMPLETION("Loot: %1$s/%2$s%%"),
     BOSS_TELEPORT_UNLOCKED("Your exploration of the map has yielded results! Open the Main Hub's Map screen to teleport straight to the Boss."),
+    DUNGEON_STATS_LEAGUE_CONTENT_HEADER("Active Events"),
+    LEAGUE_CONTENT_PROPHECY("Prophecy"),
+    LEAGUE_CONTENT_STRONGBOX("Strongbox"),
+    LEAGUE_CONTENT_IMPRISONED_MONSTER("Imprisoned Monster"),
+    LEAGUE_CONTENT_SHRINE("Shrine"),
+    LEAGUE_CONTENT_THE_HARVEST("Harvest"),
+    LEAGUE_CONTENT_OBELISK("Ancient Obelisk"),
     ;
 
     public String name;
@@ -78,5 +86,23 @@ public enum DungeonWords implements ITranslated {
             name = "undefined";
         }
         return DungeonMain.MODID + ".words.map_name_" + name.toLowerCase(Locale.ROOT);
+    }
+
+    // guids are the literal MapContent.id / MapBonusContentsData map keys, defined in each
+    // addon's own holder class (dungeon_realm can't depend on those modules, hence the hardcoded
+    // literals here). Add a new case here whenever a new league content type is registered.
+    public static MutableComponent LeagueContentName(String guid) {
+        if (guid == null) {
+            return Component.literal("");
+        }
+        return switch (guid) {
+            case "prophecy" -> LEAGUE_CONTENT_PROPHECY.get();
+            case "strongbox" -> LEAGUE_CONTENT_STRONGBOX.get();
+            case "imprisoned_monster" -> LEAGUE_CONTENT_IMPRISONED_MONSTER.get();
+            case "shrine" -> LEAGUE_CONTENT_SHRINE.get();
+            case "the_harvest" -> LEAGUE_CONTENT_THE_HARVEST.get();
+            case "obelisk" -> LEAGUE_CONTENT_OBELISK.get();
+            default -> Component.literal(guid);
+        };
     }
 }
