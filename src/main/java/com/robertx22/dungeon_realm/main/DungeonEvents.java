@@ -94,7 +94,7 @@ public class DungeonEvents {
                 // hm, 3 relics per uber and 1 per map boss is ok?
                 Player killer = event.getSource().getEntity() instanceof Player p ? p : null;
 
-                if (dungeonEntityData.isUberBoss) {
+                if (dungeonEntityData.isUberBoss || dungeonEntityData.isPinnacleBoss) {
                     for (int i = 0; i < 3; i++) {
                         mob.spawnAtLocation(RelicGenerator.randomRelicItem(Optional.empty(), new RelicGenerator.Settings()));
                         if (killer != null && RandomUtils.roll(DungeonExileEvents.GET_RELIC_FIND_BONUS.callEvents(new GetRelicFindBonusEvent(killer)).bonusPercent)) {

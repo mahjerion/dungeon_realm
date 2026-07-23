@@ -17,7 +17,6 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 public class MapDeviceBE extends BlockEntity implements ContainerListener {
@@ -52,34 +51,44 @@ public class MapDeviceBE extends BlockEntity implements ContainerListener {
 
 
     // consumes each relic whose affixes actually get folded into the returned stats (i.e. within its
-    // type's max_equipped cap) - any excess of the same relic type is left in the inventory untouched,
-    // since its stats were never applied
+    // type's max_equipped cap, per RelicItemData.filterEquippable) - any excess of the same relic
+    // type is left in the inventory untouched, since its stats were never applied
     public List<ExactRelicStat> consumeAndGetValidRelicStats() {
-        HashMap<String, Integer> map = new HashMap<>();
-
-        List<RelicItemData> all = new ArrayList<>();
+        List<Integer> slots = new ArrayList<>();
+        List<RelicItemData> orderedBySlot = new ArrayList<>();
 
         for (int i = 0; i < inv.getContainerSize(); i++) {
             ItemStack stack = inv.getItem(i);
 
-
             try {
                 if (!stack.isEmpty() && DungeonItemNbt.RELIC.has(stack)) {
-                    var data = DungeonItemNbt.RELIC.loadFrom(stack);
-                    int cur = map.getOrDefault(data.type, 0) + 1;
-                    map.put(data.type, cur);
-                    if (cur <= data.getType().max_equipped) {
-                        all.add(data);
-                        inv.removeItem(i, 1);
-                    }
+                    orderedBySlot.add(DungeonItemNbt.RELIC.loadFrom(stack));
+                    slots.add(i);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
+
+        List<RelicItemData> valid = RelicItemData.filterEquippable(orderedBySlot);
+
+        for (int idx = 0; idx < orderedBySlot.size(); idx++) {
+            RelicItemData data = orderedBySlot.get(idx);
+            if (!valid.contains(data)) {
+                continue; // excess of its type, past the max_equipped cap - leave it untouched
+            }
+
+            int slot = slots.get(idx);
+            if (data.consumeUse()) {
+                inv.removeItem(slot, 1);
+            } else {
+                DungeonItemNbt.RELIC.saveTo(inv.getItem(slot), data);
+            }
+        }
+
         List<ExactRelicStat> ex = new ArrayList<>();
 
-        for (RelicItemData data : all) {
+        for (RelicItemData data : valid) {
             for (RelicAffixData affix : data.affixes) {
                 for (RelicMod mod : affix.get().mods) {
                     ex.add(mod.toExact(affix.p));

@@ -60,6 +60,10 @@ public class RelicTooltip extends TooltipItem {
         });
 
         b.add(x -> {
+            return new ExileTooltipPart(TooltipOrder.MIDDLE, DungeonWords.RELIC_USES_REMAINING.get(data.uses, data.getMaxUses()).withStyle(ChatFormatting.AQUA));
+        });
+
+        b.add(x -> {
             return new ExileTooltipPart(TooltipOrder.LATE, data.getRarity().getTranslation(TranslationType.NAME).getTranslatedName().withStyle(data.getRarity().base_data.color()));
         });
 

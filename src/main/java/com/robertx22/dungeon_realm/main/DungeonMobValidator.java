@@ -11,6 +11,7 @@ public class DungeonMobValidator extends MobValidator {
                 DungeonEntityCapability.get(en).data.isDungeonEliteMob ||
                 DungeonEntityCapability.get(en).data.isMiniBossMob ||
                 DungeonEntityCapability.get(en).data.isFinalMapBoss ||
-                DungeonEntityCapability.get(en).data.isUberBoss;
+                DungeonEntityCapability.get(en).data.isUberBoss ||
+                DungeonEntityCapability.get(en).data.isPinnacleBoss;
     }
 }

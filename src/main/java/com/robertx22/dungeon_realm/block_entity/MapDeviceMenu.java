@@ -152,18 +152,21 @@ public class MapDeviceMenu extends AbstractContainerMenu {
         }
     }
 
+    // returns only the relics that would actually apply on activation (respects the per-type
+    // max_equipped cap, same as MapDeviceBE.consumeAndGetValidRelicStats), so the stat preview
+    // matches what actually gets consumed
     public List<RelicItemData> getRelics() {
-        List<RelicItemData> all = new ArrayList<>();
+        List<RelicItemData> orderedBySlot = new ArrayList<>();
         for (var slot : relicSlots) {
             ItemStack stack = slot.getItem();
             try {
                 if (!stack.isEmpty() && DungeonItemNbt.RELIC.has(stack)) {
-                    all.add(DungeonItemNbt.RELIC.loadFrom(stack));
+                    orderedBySlot.add(DungeonItemNbt.RELIC.loadFrom(stack));
                 }
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
-        return all;
+        return RelicItemData.filterEquippable(orderedBySlot);
     }
 }

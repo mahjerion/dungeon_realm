@@ -36,6 +36,7 @@ public class RelicGenerator {
 
         data.rar = rar.GUID();
         data.type = type.GUID();
+        data.uses = rar.max_uses;
 
         for (int i = 0; i < rar.affixes; i++) {
 
