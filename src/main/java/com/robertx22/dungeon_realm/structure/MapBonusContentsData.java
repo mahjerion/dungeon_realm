@@ -22,11 +22,11 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 public class MapBonusContentsData {
 
@@ -115,20 +115,29 @@ public class MapBonusContentsData {
             bonus++;
         }
 
-        var possible = LibDatabase.MapContent().getFiltered(x -> !x.always_spawn && x.Weight() > 0).stream().map(e -> {
+        List<Weighted<MapContent>> possible = new ArrayList<>();
+        for (MapContent e : LibDatabase.MapContent().getFiltered(x -> !x.always_spawn && x.Weight() > 0)) {
+
+            // player-stat parallel to ContentWeightRS: the starter's Atlas "event chance" node for this
+            // league raises its weight, so it's more likely to be among the bonus contents picked below.
+            // Also where the main mod gates a league mechanic below its configured min map level - a
+            // blocked content is dropped entirely rather than zero-weighted (see GetMapContentWeightBonusEvent).
+            var weightEvent = DungeonExileEvents.GET_MAP_CONTENT_WEIGHT_BONUS.callEvents(
+                    new GetMapContentWeightBonusEvent(List.of(p), e.GUID()));
+
+            if (weightEvent.blocked) {
+                continue;
+            }
+
             float weight = e.weight;
             for (RelicStat stat : LibDatabase.RelicStats().getList()) {
                 if (stat instanceof ContentWeightRS cw && cw.map_content_id.equals(e.GUID())) {
                     weight *= 1F + libdata.relicStats.get(cw) / 100F;
                 }
             }
-            // player-stat parallel to ContentWeightRS: the starter's Atlas "event chance" node for this
-            // league raises its weight, so it's more likely to be among the bonus contents picked below
-            float playerBonus = DungeonExileEvents.GET_MAP_CONTENT_WEIGHT_BONUS.callEvents(
-                    new GetMapContentWeightBonusEvent(List.of(p), e.GUID())).bonusPercent;
-            weight *= 1F + playerBonus / 100F;
-            return new Weighted<MapContent>(e, (int) weight);
-        }).collect(Collectors.toList());
+            weight *= 1F + weightEvent.bonusPercent / 100F;
+            possible.add(new Weighted<>(e, (int) weight));
+        }
 
         if (bonus > possible.size()) {
             bonus = possible.size();

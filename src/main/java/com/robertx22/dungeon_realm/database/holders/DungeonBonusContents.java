@@ -18,11 +18,10 @@ public class DungeonBonusContents extends ExileKeyHolder<MapContent> {
 
     public ExileKey<MapContent, KeyInfo> UBER_BOSS = ExileKey.ofId(this, "uber_boss", x -> MapContent.of(x.GUID(), 0, DungeonEntries.UBER_TELEPORT.getKey().location().toString(), 1, 1));
 
-    public ExileKey<MapContent, KeyInfo> BOSS = ExileKey.ofId(this, "boss", x -> {
-        var c = MapContent.of(x.GUID(), 0, DungeonEntries.BOSS_TELEPORT.getKey().location().toString(), 1, 1);
-        c.always_spawn = true;
-        return c;
-    });
+    // regular boss arena access is now exclusively through the Map GUI's percent-gated teleport
+    // (TeleportToBossPacket / DungeonConfig.MAP_PERCENT_COMPLETE_NEEDED_FOR_BOSS_ARENA) - the old
+    // physical boss_teleport block used to be scattered into every map as always-spawn bonus content,
+    // which let players stumble onto it and skip the exploration requirement entirely.
 
     @Override
     public void loadClass() {

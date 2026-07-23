@@ -15,6 +15,12 @@ public class GetMapContentWeightBonusEvent extends ExileEvent {
     public final String contentId;
     public float bonusPercent = 0;
 
+    // set true to exclude this content from the bonus-content pool entirely (e.g. below the
+    // main mod's configured min level for this league mechanic in maps) - distinct from a
+    // negative bonusPercent, which only lowers weight and still risks the all-zero-weight
+    // fallback in RandomUtils.weightedRandom picking it uniformly anyway.
+    public boolean blocked = false;
+
     public GetMapContentWeightBonusEvent(List<Player> players, String contentId) {
         this.players = players;
         this.contentId = contentId;
