@@ -18,13 +18,15 @@ public class OnMapFullyClearedEvent extends ExileEvent {
     public final String dungeonGuid;
     public final List<Player> players;
     public final boolean uber;
+    public final boolean pinnacle;
     public final ServerLevel level;
     public final BlockPos pos;
 
-    public OnMapFullyClearedEvent(String dungeonGuid, List<Player> players, boolean uber, ServerLevel level, BlockPos pos) {
+    public OnMapFullyClearedEvent(String dungeonGuid, List<Player> players, boolean uber, boolean pinnacle, ServerLevel level, BlockPos pos) {
         this.dungeonGuid = dungeonGuid;
         this.players = players;
         this.uber = uber;
+        this.pinnacle = pinnacle;
         this.level = level;
         this.pos = pos;
     }

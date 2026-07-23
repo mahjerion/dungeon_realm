@@ -122,7 +122,7 @@ public class MapDeviceBlock extends BaseEntityBlock {
 
 
             var libdata = new LibMapData();
-            libdata.relicStats = RelicStatsContainer.calculate(be.getAllValidRelicStats());
+            libdata.relicStats = RelicStatsContainer.calculate(be.consumeAndGetValidRelicStats());
 
             data.bonusContents.setupOnMapStart(stack, libdata, p);
 

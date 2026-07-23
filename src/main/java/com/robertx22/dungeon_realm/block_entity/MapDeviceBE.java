@@ -51,7 +51,10 @@ public class MapDeviceBE extends BlockEntity implements ContainerListener {
     public SimpleContainer inv = new SimpleContainer(27);
 
 
-    public List<ExactRelicStat> getAllValidRelicStats() {
+    // consumes each relic whose affixes actually get folded into the returned stats (i.e. within its
+    // type's max_equipped cap) - any excess of the same relic type is left in the inventory untouched,
+    // since its stats were never applied
+    public List<ExactRelicStat> consumeAndGetValidRelicStats() {
         HashMap<String, Integer> map = new HashMap<>();
 
         List<RelicItemData> all = new ArrayList<>();
@@ -67,8 +70,7 @@ public class MapDeviceBE extends BlockEntity implements ContainerListener {
                     map.put(data.type, cur);
                     if (cur <= data.getType().max_equipped) {
                         all.add(data);
-                    } else {
-                        int a = 5;
+                        inv.removeItem(i, 1);
                     }
                 }
             } catch (Exception e) {

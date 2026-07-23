@@ -66,7 +66,8 @@ public class RelicTooltip extends TooltipItem {
         b.add(x -> {
             return new ExileTooltipPart(TooltipOrder.LAST, Arrays.asList(
                     DungeonWords.RELIC_ITEM_INFO.get().withStyle(ChatFormatting.BLUE),
-                    DungeonWords.RELIC_ITEM_INFO2.get().withStyle(ChatFormatting.BLUE)
+                    DungeonWords.RELIC_ITEM_INFO2.get().withStyle(ChatFormatting.BLUE),
+                    DungeonWords.RELIC_CONSUMED_ON_USE.get().withStyle(ChatFormatting.RED)
             ));
         });
 

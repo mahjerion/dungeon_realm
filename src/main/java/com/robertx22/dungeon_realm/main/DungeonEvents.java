@@ -113,7 +113,7 @@ public class DungeonEvents {
                     DungeonMain.ifMapData(level, pos).ifPresent(mapData -> {
                         DungeonExileEvents.ON_MAP_FULLY_CLEARED.callEvents(new OnMapFullyClearedEvent(mapData.dungeon,
                                 DungeonMain.MAIN_DUNGEON_STRUCTURE.getAllPlayersInMap((ServerLevel) level, pos),
-                                mapData.item.uber, (ServerLevel) level, pos));
+                                mapData.item.uber, mapData.item.pinnacle, (ServerLevel) level, pos));
                     });
 
                     var data = LibMapCap.getData(level, pos);
