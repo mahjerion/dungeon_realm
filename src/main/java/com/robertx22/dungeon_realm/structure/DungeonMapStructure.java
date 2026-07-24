@@ -58,6 +58,9 @@ public class DungeonMapStructure extends DungeonStructure {
         var data = mapFinalDungeon.getDungeonData();
         int minRooms = data.min_rooms > 0 ? data.min_rooms : DungeonConfig.get().MIN_MAP_ROOMS.get();
         int maxRooms = data.max_rooms > 0 ? data.max_rooms : DungeonConfig.get().MAX_MAP_ROOMS.get();
+        // a dungeon that only overrides max_rooms would otherwise keep the config's min (e.g. 12),
+        // and RandomRange(12, 10) returns 12 - silently ignoring the smaller cap. clamp min to max.
+        minRooms = Math.min(minRooms, maxRooms);
 
         var settings = new DungeonBuilder.Settings(
             rand,
@@ -81,6 +84,14 @@ public class DungeonMapStructure extends DungeonStructure {
     @Override
     public int getSpawnHeight() {
         return 50;
+    }
+
+    // spawn in the center of the entrance room, not the center of its origin chunk. a room is
+    // roomChunks x roomChunks chunks anchored at the start chunk, so its center sits (roomChunks-1)*8
+    // blocks further in +X/+Z. 0 for the default 16-wide dungeons (unchanged), 8 for 32, 24 for 64.
+    @Override
+    public int getSpawnCenterBlockOffset(ChunkPos start) {
+        return (getMap(start).getRoomChunks() - 1) * 8;
     }
 
     // the room grid is always this many cells, whatever a dungeon's room size is. bigger rooms make a
