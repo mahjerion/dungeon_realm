@@ -7,6 +7,7 @@ import com.robertx22.dungeon_realm.api.OnStartMapEvent;
 import com.robertx22.dungeon_realm.api.OpenAtlasMapEvent;
 import com.robertx22.dungeon_realm.block_entity.MapDeviceBE;
 import com.robertx22.dungeon_realm.block_entity.MapDeviceMenu;
+import com.robertx22.dungeon_realm.database.holders.DungeonMapBlocks;
 import com.robertx22.dungeon_realm.item.DungeonItemMapData;
 import com.robertx22.dungeon_realm.item.DungeonItemNbt;
 import com.robertx22.dungeon_realm.item.DungeonMapItem;
@@ -18,6 +19,7 @@ import com.robertx22.dungeon_realm.structure.DungeonMapData;
 import com.robertx22.library_of_exile.components.LibMapCap;
 import com.robertx22.library_of_exile.components.LibMapData;
 import com.robertx22.library_of_exile.components.PlayerDataCapability;
+import com.robertx22.library_of_exile.database.init.LibDatabase;
 import com.robertx22.library_of_exile.database.relic.stat.RelicStatsContainer;
 import com.robertx22.library_of_exile.dimension.MapDimensions;
 import com.robertx22.library_of_exile.utils.TeleportUtils;
@@ -102,7 +104,6 @@ public class MapDeviceBlock extends BaseEntityBlock {
 
             var count = map.getOrSetStartPos(p.level(), stack);
             var start = DungeonMain.MAIN_DUNGEON_STRUCTURE.getStartFromCounter(count.x, count.z);
-            var pos = TeleportUtils.getSpawnTeleportPos(DungeonMain.MAIN_DUNGEON_STRUCTURE, start.getMiddleBlockPosition(5));
 
             //var pdata = PlayerDataCapability.get(p);
 
@@ -115,12 +116,6 @@ public class MapDeviceBlock extends BaseEntityBlock {
                 data.dungeon = DungeonMapItem.GetRandomDungeonGUID(p); //TODO: so this is just backwards support, but apparently we can never remove it to support old maps without predefined dungeon...
             }
 
-            be.pos = pos;
-            be.currentWorldUUID = DungeonMapCapability.getFromServer().data.data.uuid;
-
-            be.setChanged();
-
-
             var libdata = new LibMapData();
             libdata.relicStats = RelicStatsContainer.calculate(be.consumeAndGetValidRelicStats());
 
@@ -131,6 +126,27 @@ public class MapDeviceBlock extends BaseEntityBlock {
 
             DungeonMapCapability.get(p.level()).data.data.setData(p, data, DungeonMain.MAIN_DUNGEON_STRUCTURE, start.getMiddleBlockPosition(5));
             LibMapCap.get(p.level()).data.setData(p, libdata, DungeonMain.MAIN_DUNGEON_STRUCTURE, start.getMiddleBlockPosition(5));
+
+            // must come AFTER the map data is written: the spawn pos needs the dungeon's room size to
+            // center the player in the entrance room, and that's only knowable from the saved map data.
+            // computed earlier it would fall back to a random dungeon and offset by the wrong room size.
+            var struc = DungeonMain.MAIN_DUNGEON_STRUCTURE;
+            var def = TeleportUtils.getSpawnTeleportPos(struc, start.getMiddleBlockPosition(5));
+
+            // a builder can override the landing spot with a player_spawn data block. the entrance room
+            // is always the middle cell of the grid, whose origin chunk is the dungeon's start chunk,
+            // which is what keeps this to entrance rooms only. none placed = the old center spawn.
+            var marker = LibDatabase.MapDataBlocks().get(DungeonMapBlocks.INSTANCE.PLAYER_SPAWN.GUID());
+            var pos = struc.findDataBlockInRoom(p.getServer(), start, s -> marker.matches(s, null, null, null), def)
+                    .orElse(def);
+
+            // same map the secondary structures record theirs in, so re-entry paths resolve it too
+            data.spawnPositions.put(struc.guid(), pos.asLong());
+
+            be.pos = pos;
+            be.currentWorldUUID = DungeonMapCapability.getFromServer().data.data.uuid;
+
+            be.setChanged();
 
             // todo
             var event = new OnStartMapEvent(p, stack, start, DungeonMain.MAP);

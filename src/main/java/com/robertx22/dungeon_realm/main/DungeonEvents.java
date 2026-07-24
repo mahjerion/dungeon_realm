@@ -15,6 +15,7 @@ import com.robertx22.dungeon_realm.item.DungeonMapItem;
 import com.robertx22.dungeon_realm.item.relic.RelicGenerator;
 import com.robertx22.dungeon_realm.structure.DungeonMapCapability;
 import com.robertx22.library_of_exile.components.LibMapCap;
+import com.robertx22.library_of_exile.config.map_dimension.ProcessMapChunks;
 import com.robertx22.library_of_exile.dimension.MapDimensions;
 import com.robertx22.library_of_exile.events.base.EventConsumer;
 import com.robertx22.library_of_exile.events.base.ExileEvents;
@@ -177,20 +178,11 @@ public class DungeonEvents {
         ExileEvents.DUNGEON_DATA_BLOCK_PLACED.register(new EventConsumer<>() {
             @Override
             public void accept(ExileEvents.DungeonDataBlockPlaced event) {
-                var blockNbt = event.blockInfo.nbt();
-                if (blockNbt == null) {
+                if (event.blockInfo.nbt() == null) {
                     ExileLog.get().warn("Dungeon Data Block NBT is null");
                     return;
                 }
-                String blockMetadata;
-
-                if (blockNbt.contains("metadata")) { // structure block
-                    blockMetadata = blockNbt.getString("metadata");
-                } else if (blockNbt.contains("Command")) { // command block
-                    blockMetadata = blockNbt.getString("Command");
-                } else {
-                    blockMetadata = "unknown";
-                }
+                String blockMetadata = ProcessMapChunks.getDataString(event.blockInfo);
 
                 var serverLevel = event.levelAccessor.getServer().getLevel(ResourceKey.create(Registries.DIMENSION, DIMENSION_KEY));
                 if (DungeonMain.MAP.isInside(DungeonMain.MAIN_DUNGEON_STRUCTURE, serverLevel, event.pos)) {

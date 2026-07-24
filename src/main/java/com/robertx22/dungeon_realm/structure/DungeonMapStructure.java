@@ -91,6 +91,13 @@ public class DungeonMapStructure extends DungeonStructure {
     // blocks further in +X/+Z. 0 for the default 16-wide dungeons (unchanged), 8 for 32, 24 for 64.
     @Override
     public int getSpawnCenterBlockOffset(ChunkPos start) {
+        // getMap falls back to a random weighted dungeon when there's no map data yet, and that dungeon's
+        // room size has nothing to do with the one that will actually generate here - guessing 32 for a
+        // 16 wide dungeon puts the player 8 blocks inside a wall. no data, no offset.
+        var serverLevel = DungeonMain.server.getLevel(ResourceKey.create(Registries.DIMENSION, DIMENSION_KEY));
+        if (DungeonMain.ifMapData(serverLevel, start.getMiddleBlockPosition(5)).isEmpty()) {
+            return 0;
+        }
         return (getMap(start).getRoomChunks() - 1) * 8;
     }
 

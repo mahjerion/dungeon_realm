@@ -1,5 +1,6 @@
 package com.robertx22.dungeon_realm.database.holders;
 
+import com.robertx22.dungeon_realm.database.data_blocks.PlayerSpawnMB;
 import com.robertx22.dungeon_realm.database.data_blocks.SecondaryStructureSpawnPosMB;
 import com.robertx22.dungeon_realm.database.data_blocks.chests.MapChanceChestMB;
 import com.robertx22.dungeon_realm.database.data_blocks.chests.MapChestMB;
@@ -30,6 +31,7 @@ public class DungeonMapBlocks extends ExileKeyHolder<MapDataBlock> {
     }
 
     public ExileKey<MapDataBlock, KeyInfo> SECONDARY_STRUCTURE_SPAWN = ExileKey.ofId(this, "league_spawn_pos", x -> new SecondaryStructureSpawnPosMB(x.GUID()));
+    public ExileKey<MapDataBlock, KeyInfo> PLAYER_SPAWN = ExileKey.ofId(this, "player_spawn", x -> new PlayerSpawnMB(x.GUID()));
     public ExileKey<MapDataBlock, KeyInfo> REWARD_ROOM_CHEST = ExileKey.ofId(this, "map_reward", x -> new RewardRoomChestMB(x.GUID()));
     public ExileKey<MapDataBlock, KeyInfo> MAP_CHEST = ExileKey.ofId(this, "chest", x -> new MapChestMB(x.GUID()));
     public ExileKey<MapDataBlock, KeyInfo> MAP_CHANCE_CHEST = ExileKey.ofId(this, "chance_chest", x -> new MapChanceChestMB(x.GUID()));
