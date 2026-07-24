@@ -60,10 +60,11 @@ public class DungeonStatsOverlay {
         );
     }
 
-    // overall map progress (mirrors the kill completion percent that actually gates rarity
+    // overall map progress - mirrors the same value shown by MapBarButton's progress bar
+    // (DungeonMapData.calculateKillCompletionPercent, the one that actually gates rarity
     // upgrades/boss teleport), shown as a single stat instead of separate kill/loot lines.
     public static MutableComponent getMapProgress() {
-        int progressPercent = DungeonStatsStore.getKillCompletionPercent();
+        int progressPercent = DungeonStatsStore.getRarityProgressPercent();
         int progressColor = interpolateColor(ChatFormatting.GRAY.getColor(), ChatFormatting.YELLOW.getColor(), progressPercent / 100.0f);
         return DungeonWords.DUNGEON_STATS_PROGRESS.get(
             Component.literal(String.valueOf(progressPercent)).withStyle(style -> style.withColor(progressColor))
