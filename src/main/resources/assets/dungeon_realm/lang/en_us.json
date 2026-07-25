@@ -32,6 +32,7 @@
 	"dungeon_realm.words.league_content_strongbox": "Strongbox",
 	"dungeon_realm.words.league_content_the_harvest": "Harvest",
 	"dungeon_realm.words.map_complete_rarity_upgrade": "Your Map Exploration is now %1$s",
+	"dungeon_realm.words.map_has_pinnacle_arena": "- { Area Contains a Pinnacle Boss Portal } -",
 	"dungeon_realm.words.map_has_uber_arena": "- { Area Contains an Uber Boss Portal } -",
 	"dungeon_realm.words.map_item_desc": "This item allows you to enter the Dungeon Realm",
 	"dungeon_realm.words.map_item_use_info": "Right Click the [Map Device Block] with the map to start it.",

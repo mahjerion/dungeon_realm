@@ -17,6 +17,8 @@ import net.minecraft.world.level.ChunkPos;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static com.robertx22.dungeon_realm.main.DungeonMain.DIMENSION_KEY;
@@ -29,6 +31,10 @@ public class DungeonMapStructure extends DungeonStructure {
         return "dungeon";
     }
 
+    // one warning per instance: getMap runs per generated chunk and per mob spawn, so an unowned
+    // instance would otherwise flood the log
+    private static final Set<ChunkPos> WARNED_NO_MAP_DATA = ConcurrentHashMap.newKeySet();
+
     @Override
     public DungeonBuilder getMap(ChunkPos cp) {
         var serverLevel = DungeonMain.server.getLevel(ResourceKey.create(Registries.DIMENSION, DIMENSION_KEY));
@@ -37,13 +43,22 @@ public class DungeonMapStructure extends DungeonStructure {
         DungeonMain.ifMapData(serverLevel, cp.getMiddleBlockPosition(5)).ifPresentOrElse(
                 (x) -> mapDungeon.set(x.dungeon),
                 () -> {
-                    var rand = MapGenerationUTIL.createRandom(start);
-                    String randomDungeon = RandomUtils.weightedRandom(DungeonDatabase.Dungeons().getFilterWrapped(i -> true).list, rand.nextDouble()).id;
-                    mapDungeon.set(randomDungeon);
+                    // no saved map data for this instance, so there is no right answer here. it used to
+                    // roll a dungeon from the WHOLE database, which ignores Atlas unlocks and made maps
+                    // generate as dungeons the player never unlocked. dungeonSettings still picks a
+                    // deterministic one so the instance is at least self consistent, but the builder is
+                    // flagged unresolved so the layout is never cached as this instance's identity.
+                    if (WARNED_NO_MAP_DATA.add(start)) {
+                        DungeonMain.LOG.warn("No dungeon map data for the instance at " + start
+                                + ", generating a placeholder dungeon. If a player is in this map, its layout "
+                                + "will not match the map item they used.");
+                    }
                 }
         );
 
-        DungeonBuilder b = new DungeonBuilder(dungeonSettings(start, mapDungeon.get()));
+        String dungeon = mapDungeon.get();
+        DungeonBuilder b = new DungeonBuilder(dungeonSettings(start, dungeon));
+        b.resolvedFromMapData = dungeon != null && !dungeon.isEmpty();
         return b;
     }
 

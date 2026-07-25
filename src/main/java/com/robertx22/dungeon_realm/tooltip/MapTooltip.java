@@ -41,7 +41,12 @@ public class MapTooltip extends TooltipItem {
 
         TooltipBuilder<MapTooltip> b = new TooltipBuilder<>(new MapTooltip(stack, map));
 
-        if (map.uber) {
+        // uber and pinnacle are mutually exclusive on a map item, so only one line ever shows
+        if (map.pinnacle) {
+            b.add(x -> {
+                return new ExileTooltipPart(TooltipOrder.LATE, MapHasPinnacle());
+            });
+        } else if (map.uber) {
             b.add(x -> {
                 return new ExileTooltipPart(TooltipOrder.LATE, MapHasUber());
             });
@@ -60,6 +65,11 @@ public class MapTooltip extends TooltipItem {
 
     public static @NotNull MutableComponent MapHasUber() {
         return DungeonWords.MAP_HAS_UBER_ARENA.get().withStyle(ChatFormatting.RED, ChatFormatting.BOLD);
+    }
+
+    // dark red to match the Pinnacle mob rarity color, so it reads as a step above Uber's red
+    public static @NotNull MutableComponent MapHasPinnacle() {
+        return DungeonWords.MAP_HAS_PINNACLE_ARENA.get().withStyle(ChatFormatting.DARK_RED, ChatFormatting.BOLD);
     }
 
     public static @NotNull MutableComponent MapLayoutName(String dungeon) {
