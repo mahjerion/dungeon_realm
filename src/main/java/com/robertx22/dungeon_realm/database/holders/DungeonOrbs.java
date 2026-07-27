@@ -22,7 +22,7 @@ public class DungeonOrbs extends ExileKeyHolder<ExileCurrency> {
         super(modRegisterInfo);
     }
 
-    public ExileKey<ExileCurrency, IdKey> UBER_UPGRADE = ExileCurrency.Builder.of("uber_upgrade", "Dungeon Map Uber Upgrade", DungeonItemReqs.INSTANCE.IS_MAP_ITEM)
+    public ExileKey<ExileCurrency, IdKey> UBER_UPGRADE = ExileCurrency.Builder.of("uber_upgrade", "Adventure Map Uber Upgrade", DungeonItemReqs.INSTANCE.IS_MAP_ITEM)
             .addAlwaysUseModification(DungeonItemMods.INSTANCE.UBER_UPGRADE)
             .addRequirement(DungeonItemReqs.INSTANCE.IS_NOT_UBER)
             .weight(0)
@@ -31,7 +31,7 @@ public class DungeonOrbs extends ExileKeyHolder<ExileCurrency> {
 
     // no vanilla crafting-grid recipe (no .addRecipe call) - obtained only via the Infusing
     // profession recipe system instead (see ProfessionRecipes.java), gated on Atlas completion
-    public ExileKey<ExileCurrency, IdKey> PINNACLE_UPGRADE = ExileCurrency.Builder.of("pinnacle_upgrade", "Dungeon Map Pinnacle Upgrade", DungeonItemReqs.INSTANCE.IS_MAP_ITEM)
+    public ExileKey<ExileCurrency, IdKey> PINNACLE_UPGRADE = ExileCurrency.Builder.of("pinnacle_upgrade", "Adventure Map Pinnacle Upgrade", DungeonItemReqs.INSTANCE.IS_MAP_ITEM)
             .addAlwaysUseModification(DungeonItemMods.INSTANCE.PINNACLE_UPGRADE)
             .addRequirement(DungeonItemReqs.INSTANCE.IS_NOT_UBER)
             .weight(0)
