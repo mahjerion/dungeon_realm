@@ -155,6 +155,22 @@ public class MapDeviceMenu extends AbstractContainerMenu {
     // returns only the relics that would actually apply on activation (respects the per-type
     // max_equipped cap, same as MapDeviceBE.consumeAndGetValidRelicStats), so the stat preview
     // matches what actually gets consumed
+    // cheap change detection for the client side stat preview. loading the relic data itself parses
+    // nbt for every slot, so the screen only redoes that when this changes
+    public int getRelicsSignature() {
+        int hash = 1;
+        for (var slot : relicSlots) {
+            ItemStack stack = slot.getItem();
+            if (stack.isEmpty()) {
+                hash = 31 * hash;
+            } else {
+                hash = 31 * hash + stack.getItem().hashCode();
+                hash = 31 * hash + (stack.getTag() == null ? 0 : stack.getTag().hashCode());
+            }
+        }
+        return hash;
+    }
+
     public List<RelicItemData> getRelics() {
         List<RelicItemData> orderedBySlot = new ArrayList<>();
         for (var slot : relicSlots) {

@@ -32,6 +32,11 @@ public class MapDeviceScreen extends AbstractContainerScreen<MapDeviceMenu> impl
     /** Window height is calculated with these values" the more rows, the higher */
     private final int containerRows;
     private final int LINE_HEIGHT = 11;
+    private final int STATS_TOP_PADDING = 2;
+
+    private List<Component> cachedStatLines = null;
+    private int cachedMaxLineWidth = 0;
+    private int cachedRelicSignature = 0;
 
     public MapDeviceScreen(MapDeviceMenu pMenu, Inventory pPlayerInventory, Component pTitle) {
         super(pMenu, pPlayerInventory, pTitle);
@@ -40,6 +45,17 @@ public class MapDeviceScreen extends AbstractContainerScreen<MapDeviceMenu> impl
         this.containerRows = 3;
         this.imageHeight = 114 + this.containerRows * 18;
         this.inventoryLabelY = this.imageHeight - 94;
+    }
+
+    @Override
+    protected void containerTick() {
+        super.containerTick();
+
+        int signature = this.menu.getRelicsSignature();
+        if (signature != this.cachedRelicSignature) {
+            this.cachedRelicSignature = signature;
+            this.cachedStatLines = null;
+        }
     }
 
     public void render(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
@@ -72,30 +88,43 @@ public class MapDeviceScreen extends AbstractContainerScreen<MapDeviceMenu> impl
     }
 
     public void drawRelicsInfo(GuiGraphics pGuiGraphics) {
-        var relics = this.menu.getRelics();
-        if (relics.isEmpty()) {
+        if (this.cachedStatLines == null) {
+            rebuildStatLines();
+        }
+        if (this.cachedStatLines.isEmpty()) {
             return;
         }
 
-        Map<String, RelicStatWithValue> mappedGroupedRelicStats = getRelicStatWithValueMap(relics);
-        var sortedKeys = mappedGroupedRelicStats.keySet().stream().sorted(Comparator.comparingDouble(i -> mappedGroupedRelicStats.get(i).value)).toList();
+        int startY = (this.height - this.imageHeight) / 2;
+        drawStatsBackground(pGuiGraphics, this.cachedMaxLineWidth, startY, this.cachedStatLines.size());
+        drawStats(pGuiGraphics, this.cachedStatLines, Minecraft.getInstance().font, startY, this.cachedMaxLineWidth);
+    }
 
-        Font minecraftFont = Minecraft.getInstance().font;
-        var maxLineWidth = 0;
+    // this parses the nbt of every socketed relic and builds fresh components, so it must never run
+    // per frame. containerTick invalidates the cache when the relic slots actually change
+    private void rebuildStatLines() {
         List<Component> lines = new ArrayList<>();
-        for (int i = sortedKeys.size() - 1; i >= 0; i--){
-            var relicStatWithValue = mappedGroupedRelicStats.get(sortedKeys.get(i));
-            var stat = relicStatWithValue.stat;
-            var value = relicStatWithValue.value;
-            MutableComponent statText = stat.getTooltip(value);
-            lines.add(statText);
-            var textWidth = minecraftFont.width(statText);
-            maxLineWidth = Math.max(maxLineWidth, textWidth);
+        int maxLineWidth = 0;
+
+        var relics = this.menu.getRelics();
+        if (!relics.isEmpty()) {
+            Map<String, RelicStatWithValue> mappedGroupedRelicStats = getRelicStatWithValueMap(relics);
+            var sortedKeys = mappedGroupedRelicStats.keySet().stream().sorted(Comparator.comparingDouble(i -> mappedGroupedRelicStats.get(i).value)).toList();
+
+            Font minecraftFont = Minecraft.getInstance().font;
+            for (int i = sortedKeys.size() - 1; i >= 0; i--) {
+                var relicStatWithValue = mappedGroupedRelicStats.get(sortedKeys.get(i));
+                var stat = relicStatWithValue.stat;
+                var value = relicStatWithValue.value;
+                MutableComponent statText = stat.getTooltip(value);
+                lines.add(statText);
+                var textWidth = minecraftFont.width(statText);
+                maxLineWidth = Math.max(maxLineWidth, textWidth);
+            }
         }
 
-        int startY = (this.height - this.imageHeight) / 2;
-        drawStatsBackground(pGuiGraphics, maxLineWidth, startY, lines.size());
-        drawStats(pGuiGraphics, lines, minecraftFont, startY, maxLineWidth);
+        this.cachedStatLines = lines;
+        this.cachedMaxLineWidth = maxLineWidth;
     }
 
     private void drawStatsBackground(GuiGraphics pGuiGraphics, int maxLineWidth, int startY, int size) {
@@ -106,14 +135,15 @@ public class MapDeviceScreen extends AbstractContainerScreen<MapDeviceMenu> impl
             backgroundStartX -= (maxLineWidth - this.imageWidth) / 2;
             backgroundEndX += (maxLineWidth - this.imageWidth) / 2;
         }
-        if (size * LINE_HEIGHT > this.imageWidth) {
-            backgroundEndY = startY + size * LINE_HEIGHT;
+        int statsHeight = STATS_TOP_PADDING + size * LINE_HEIGHT;
+        if (statsHeight > this.imageHeight) {
+            backgroundEndY = startY + statsHeight;
         }
         pGuiGraphics.fill(backgroundStartX, startY, backgroundEndX, backgroundEndY, 0x80000000);
     }
 
     private void drawStats(GuiGraphics pGuiGraphics, List<Component> lines, Font minecraftFont, int startY, int maxLineWidth) {
-        var y = 2;
+        var y = STATS_TOP_PADDING;
         int startX = (this.width - this.imageWidth) / 2;
         if (maxLineWidth > this.imageWidth) {
             startX -= (maxLineWidth - this.imageWidth) / 2;
