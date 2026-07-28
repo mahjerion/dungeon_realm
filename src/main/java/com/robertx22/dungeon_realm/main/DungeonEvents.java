@@ -182,9 +182,12 @@ public class DungeonEvents {
                     ExileLog.get().warn("Dungeon Data Block NBT is null");
                     return;
                 }
-                String blockMetadata = ProcessMapChunks.getDataString(event.blockInfo);
-
                 var serverLevel = event.levelAccessor.getServer().getLevel(ResourceKey.create(Registries.DIMENSION, DIMENSION_KEY));
+
+                // a command block left in the room to run its command isn't content, so it must not
+                // count toward the map's mob spawn block bookkeeping
+                String blockMetadata = ProcessMapChunks.getDataBlockKey(serverLevel, event.blockInfo);
+
                 if (DungeonMain.MAP.isInside(DungeonMain.MAIN_DUNGEON_STRUCTURE, serverLevel, event.pos)) {
                     DungeonMain.ifMapData(serverLevel, event.pos).ifPresent(mapData -> {
                         var mobSpawnBlockKind = DungeonMapBlocks.getMobSpawnBlockKindFromBlockMetadata(blockMetadata);
