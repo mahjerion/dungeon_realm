@@ -34,6 +34,7 @@ public class DungeonConfig {
     public ForgeConfigSpec.IntValue PACK_MOB_MAX;
 
     public ForgeConfigSpec.DoubleValue UBER_FRAG_DROPRATE;
+    public ForgeConfigSpec.DoubleValue MAP_ITEM_FROM_BOSS_BASE_CHANCE;
 
     public ForgeConfigSpec.IntValue ELITE_MOB_COMPLETION_WEIGHT;
     public ForgeConfigSpec.IntValue MINI_BOSS_COMPLETION_WEIGHT;
@@ -117,6 +118,9 @@ public class DungeonConfig {
         PACK_MOB_MAX = b.defineInRange("pack_mob_max", 6, 0, 20);
 
         UBER_FRAG_DROPRATE = b.comment("Uber fragments can drop from A map boss, default chance is 10%").defineInRange("UBER_FRAG_DROP_RATE", 10D, 0, 100);
+
+        MAP_ITEM_FROM_BOSS_BASE_CHANCE = b.comment("Chance the final map boss drops a map item. This drop is the tier progression vector - it can't roll below the tier of the map it dropped in. The bonus_map_item_from_boss relic stat adds on top of this. Set to 0 to make the drop relic-only again.")
+                                          .defineInRange("MAP_ITEM_FROM_BOSS_BASE_CHANCE", 20D, 0, 100);
 
         ELITE_MOB_COMPLETION_WEIGHT = b.comment("How many mobs should an elite mob count for in terms of map completion? Default is 10, so 10x a normal mob death. Max 9999")
                                        .defineInRange("elite_mob_completion_weight", 10, 1, 9999);

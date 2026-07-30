@@ -134,13 +134,28 @@ public class DungeonEvents {
                     }
 
                     // todo this isn't ideal
+                    // This drop is what makes map tier climb - it can't roll below the tier of the map
+                    // it dropped in. It used to be relic-only, which meant 0% for anyone without that
+                    // relic stat, so the ladder never actually moved. The relic now adds on top.
                     if (killer != null) {
+                        float mapchance = DungeonConfig.get().MAP_ITEM_FROM_BOSS_BASE_CHANCE.get().floatValue();
+
                         var libdata = LibMapCap.getData(level, pos);
                         if (libdata != null) {
-                            float mapchance = libdata.relicStats.get(DungeonRelicStats.INSTANCE.BONUS_MAP_ITEM_FROM_BOSS_CHANCE);
-                            if (RandomUtils.roll(mapchance)) {
-                                mob.spawnAtLocation(DungeonMapItem.newRandomMapItemStack(new DungeonMapGenSettings(), killer));
-                            }
+                            mapchance += libdata.relicStats.get(DungeonRelicStats.INSTANCE.BONUS_MAP_ITEM_FROM_BOSS_CHANCE);
+                        }
+
+                        // roll() is a single boolean, so anything past 100 would be silently thrown
+                        // away and the relic stat would do nothing once the base chance is 100.
+                        // Every whole 100 is one guaranteed map, the remainder is rolled.
+                        int guaranteed = (int) (mapchance / 100F);
+
+                        for (int i = 0; i < guaranteed; i++) {
+                            mob.spawnAtLocation(DungeonMapItem.newRandomMapItemStack(DungeonMapGenSettings.ofMapBoss(), killer));
+                        }
+
+                        if (RandomUtils.roll(mapchance % 100F)) {
+                            mob.spawnAtLocation(DungeonMapItem.newRandomMapItemStack(DungeonMapGenSettings.ofMapBoss(), killer));
                         }
                     }
 

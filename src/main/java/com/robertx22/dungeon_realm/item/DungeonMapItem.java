@@ -32,7 +32,7 @@ public class DungeonMapItem extends Item {
 
         DungeonItemNbt.DUNGEON_MAP.saveTo(stack, data);
 
-        var event = new OnGenerateNewMapItemEvent(stack, player);
+        var event = new OnGenerateNewMapItemEvent(stack, player, p);
         DungeonExileEvents.ON_GENERATE_NEW_MAP_ITEM.callEvents(event);
 
         return stack;
@@ -65,7 +65,7 @@ public class DungeonMapItem extends Item {
         ItemStack stack = new ItemStack(DungeonEntries.DUNGEON_MAP_ITEM.get());
         var data = fixedNewMapData(dungeonGuid, player);
         DungeonItemNbt.DUNGEON_MAP.saveTo(stack, data);
-        var event = new OnGenerateNewMapItemEvent(stack, player);
+        var event = new OnGenerateNewMapItemEvent(stack, player, p);
         DungeonExileEvents.ON_GENERATE_NEW_MAP_ITEM.callEvents(event);
         return stack;
     }
