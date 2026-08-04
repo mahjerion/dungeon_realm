@@ -35,6 +35,12 @@ public class DungeonMapStructure extends DungeonStructure {
     // instance would otherwise flood the log
     private static final Set<ChunkPos> WARNED_NO_MAP_DATA = ConcurrentHashMap.newKeySet();
 
+    // a wipe hands the same coordinates out again to entirely different maps, so a coordinate that warned
+    // before must be able to warn again - otherwise a real problem in a recycled instance stays silent
+    public static void forgetWarnings() {
+        WARNED_NO_MAP_DATA.clear();
+    }
+
     @Override
     public DungeonBuilder getMap(ChunkPos cp) {
         var serverLevel = DungeonMain.server.getLevel(ResourceKey.create(Registries.DIMENSION, DIMENSION_KEY));

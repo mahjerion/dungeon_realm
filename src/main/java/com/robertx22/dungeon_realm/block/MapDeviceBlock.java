@@ -24,10 +24,12 @@ import com.robertx22.library_of_exile.database.relic.stat.RelicStatsContainer;
 import com.robertx22.library_of_exile.dimension.MapDimensions;
 import com.robertx22.library_of_exile.utils.TeleportUtils;
 import com.robertx22.library_of_exile.utils.geometry.Circle2d;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.Container;
@@ -160,7 +162,11 @@ public class MapDeviceBlock extends BaseEntityBlock {
 
 
         } catch (Exception e) {
-            e.printStackTrace();
+            // failing anywhere between getOrSetStartPos and setData burns an instance slot and leaves the
+            // item carrying its coordinates, so the next attempt with it silently re-enters an instance
+            // that was never written. that used to look like nothing happening at all - say so.
+            DungeonMain.LOG.error("Failed to start a dungeon map for " + p.getScoreboardName() + ".", e);
+            p.sendSystemMessage(Component.literal("Failed to start the map, check the server log.").withStyle(ChatFormatting.RED));
         }
     }
 
