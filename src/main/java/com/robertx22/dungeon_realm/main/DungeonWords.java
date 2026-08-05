@@ -16,6 +16,7 @@ public enum DungeonWords implements ITranslated {
     MAP_HAS_UBER_ARENA("- { Area Contains an Uber Boss Portal } -"),
     MAP_HAS_PINNACLE_ARENA("- { Area Contains a Pinnacle Boss Portal } -"),
     MAP_COMPLETE_RARITY_UPGRADE("Your Map Exploration is now %1$s"),
+    STARTING_IN("Starting in %1$ss..."),
     MAP_ITEM_DESC("This item allows you to enter the Dungeon Realm"),
     MAP_ITEM_USE_INFO("Right Click the [Map Device Block] with the map to start it."),
     RELIC_CONTAINER("Map Relics Inventory"),

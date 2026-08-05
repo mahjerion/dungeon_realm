@@ -69,6 +69,7 @@
 	"dungeon_realm.words.relic_max_count": "Maximum [%1$s] of this type can be used",
 	"dungeon_realm.words.relic_uses_remaining": "Uses Remaining: %1$s/%2$s",
 	"dungeon_realm.words.show_relic_stats_hint": "Press '%1$s' to display all Relic Stats",
+	"dungeon_realm.words.starting_in": "Starting in %1$ss...",
 	"dungeon_realm.words.usable_only_in_dungeon_realm": "This is only usable in the Dungeon Realm",
 	"item.dungeon_realm.dungeon_map": "\u00A75Dungeon Map",
 	"item.dungeon_realm.fixed_dungeon_map_item": "\u00A7cDungeon Map",

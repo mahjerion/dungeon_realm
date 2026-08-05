@@ -141,6 +141,10 @@ public class DungeonMain {
             bus.addListener(this::clientSetup);
         });
 
+        // a dungeon drops you into a room whose content is held back for the spawn grace. yellow, so it
+        // reads as "nothing has started yet" rather than as one of the map's own progress messages
+        MAP.graceCountdownText = seconds -> DungeonWords.STARTING_IN.get(seconds).withStyle(ChatFormatting.YELLOW);
+
         new MapRegisterBuilder(MAP)
                 .chunkGenerator(new EventConsumer<MapChunkGenEvent>() {
                     @Override
