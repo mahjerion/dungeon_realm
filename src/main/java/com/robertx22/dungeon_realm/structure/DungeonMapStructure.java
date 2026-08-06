@@ -2,7 +2,6 @@ package com.robertx22.dungeon_realm.structure;
 
 import com.robertx22.dungeon_realm.configs.DungeonConfig;
 import com.robertx22.dungeon_realm.database.DungeonDatabase;
-import com.robertx22.dungeon_realm.database.dungeon.Dungeon;
 import com.robertx22.dungeon_realm.item.DungeonMapItem;
 import com.robertx22.dungeon_realm.main.DungeonMain;
 import com.robertx22.library_of_exile.dimension.MapGenerationUTIL;
@@ -13,10 +12,9 @@ import com.robertx22.library_of_exile.dimension.structure.dungeon.IDungeon;
 import com.robertx22.library_of_exile.utils.RandomUtils;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
@@ -46,34 +44,91 @@ public class DungeonMapStructure extends DungeonStructure {
         var serverLevel = DungeonMain.server.getLevel(ResourceKey.create(Registries.DIMENSION, DIMENSION_KEY));
         AtomicReference<String> mapDungeon = new AtomicReference<>();
         var start = getStartChunkPos(cp);
-        DungeonMain.ifMapData(serverLevel, cp.getMiddleBlockPosition(5)).ifPresentOrElse(
-                (x) -> mapDungeon.set(x.dungeon),
-                () -> {
-                    // no saved map data for this instance, so there is no right answer here. it used to
-                    // roll a dungeon from the WHOLE database, which ignores Atlas unlocks and made maps
-                    // generate as dungeons the player never unlocked. dungeonSettings still picks a
-                    // deterministic one so the instance is at least self consistent, but the builder is
-                    // flagged unresolved so the layout is never cached as this instance's identity.
-                    if (WARNED_NO_MAP_DATA.add(start)) {
-                        DungeonMain.LOG.warn("No dungeon map data for the instance at " + start
-                                + ", generating a placeholder dungeon. If a player is in this map, its layout "
-                                + "will not match the map item they used.");
-                    }
-                }
-        );
+        DungeonMain.ifMapData(serverLevel, cp.getMiddleBlockPosition(5)).ifPresent(x -> mapDungeon.set(x.dungeon));
 
-        String dungeon = mapDungeon.get();
+        String saved = mapDungeon.get();
+        // the id has to still name a REGISTERED dungeon, not merely be a non empty string. A map whose
+        // dungeon left the database (datapack edit, addon disabled) otherwise counted as resolved, and
+        // the random dungeon picked in its place got cached as the instance's permanent identity.
+        boolean resolved = DungeonDatabase.Dungeons().isRegistered(saved);
+
+        String dungeon = saved;
+        if (!resolved) {
+            // no usable map data for this instance, so there is no right answer here. it used to roll a
+            // dungeon from the WHOLE database on every chunk, which ignores Atlas unlocks and let one
+            // instance generate as several different dungeons at once. Reuse whatever was generated here
+            // first instead: a wrong theme is survivable, a half sewers half garden map is not. The
+            // builder is still flagged unresolved so the layout is never cached as the instance's
+            // identity, and the real map data wins the moment it becomes readable.
+            dungeon = placeholderDungeonFor(serverLevel, start);
+
+            if (WARNED_NO_MAP_DATA.add(start)) {
+                DungeonMain.LOG.warn((saved == null || saved.isEmpty()
+                        ? "No dungeon map data for the instance at " + start
+                        : "The instance at " + start + " wants dungeon '" + saved + "', which is not registered")
+                        + ", generating '" + dungeon + "' as a placeholder. If a player is in this map, its"
+                        + " layout will not match the map item they used.");
+            }
+        }
+
         DungeonBuilder b = new DungeonBuilder(dungeonSettings(start, dungeon));
-        b.resolvedFromMapData = dungeon != null && !dungeon.isEmpty();
+        b.resolvedFromMapData = resolved;
         return b;
+    }
+
+    /**
+     * The dungeon to build when the map data can't answer. Whatever was generated at this instance first
+     * wins, so every later chunk agrees with the rooms already written to disk.
+     */
+    private static String placeholderDungeonFor(ServerLevel level, ChunkPos start) {
+        DungeonMapCapability cap = level == null ? null : DungeonMapCapability.get(level);
+
+        // fast path, and the one that actually matters: every chunk of an instance with no map data
+        // comes through here, and all of them have to agree with whatever was built first.
+        if (cap != null) {
+            String already = cap.data.generatedDungeonAtStart.get(cap.data.data.getKey(start));
+            if (DungeonDatabase.Dungeons().isRegistered(already)) {
+                return already;
+            }
+        }
+
+        IDungeon rolled = randomDungeonFor(start);
+        if (rolled == null) {
+            // registry isn't loaded, so there is nothing to record. dungeonSettings hits the same wall a
+            // moment later and reports it as itself, which beats an NPE from inside worldgen.
+            return null;
+        }
+        if (cap == null) {
+            // nowhere to record it; a deterministic roll is still better than nothing
+            return rolled.GUID();
+        }
+
+        // merge, not putIfAbsent: several worldgen threads can reach this for the same instance at once
+        // and must all come out with the same dungeon, AND a recorded id that has since left the
+        // database has to be replaced rather than handed back forever.
+        return cap.data.generatedDungeonAtStart.merge(cap.data.data.getKey(start), rolled.GUID(),
+                (existing, fresh) -> DungeonDatabase.Dungeons().isRegistered(existing) ? existing : fresh);
+    }
+
+    /**
+     * Deterministic pick for an instance whose dungeon isn't known, drawn from its OWN Random.
+     * <p>
+     * This used to roll off the same {@code rand} the layout is built from, inside an {@code orElseGet},
+     * so merely failing to find the dungeon advanced the shared stream by one - which changed the room
+     * count roll and every rotation drawn after it. A guessed layout then differed from the real one even
+     * when the guess happened to name the right dungeon, and the two could not be stitched together.
+     */
+    private static IDungeon randomDungeonFor(ChunkPos pos) {
+        var fallbackRand = MapGenerationUTIL.createRandom(pos);
+        return RandomUtils.weightedRandom(DungeonDatabase.Dungeons().getList(), fallbackRand.nextDouble());
     }
 
     public static DungeonBuilder.Settings dungeonSettings(ChunkPos pos, String mapDungeon) {
         var rand = MapGenerationUTIL.createRandom(pos);
 
-        List<Dungeon> dungeons = new ArrayList<>(DungeonDatabase.Dungeons().getFilterWrapped(x -> true).list);
-        var dungeon = dungeons.stream().filter(x -> x.id.equals(mapDungeon)).findFirst();
-        IDungeon mapFinalDungeon = dungeon.orElseGet(() -> RandomUtils.weightedRandom(dungeons, rand.nextDouble()));;
+        IDungeon mapFinalDungeon = DungeonDatabase.Dungeons().getOptional(mapDungeon)
+                .map(x -> (IDungeon) x)
+                .orElseGet(() -> randomDungeonFor(pos));
 
         // a dungeon with bigger rooms is a lot more to walk through, so it can ask for fewer of them
         var data = mapFinalDungeon.getDungeonData();
