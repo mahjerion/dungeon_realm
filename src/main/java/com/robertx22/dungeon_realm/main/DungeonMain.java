@@ -21,10 +21,13 @@ import com.robertx22.library_of_exile.dimension.MapChunkGenEvent;
 import com.robertx22.library_of_exile.dimension.MapContentType;
 import com.robertx22.library_of_exile.dimension.MapDimensionInfo;
 import com.robertx22.library_of_exile.dimension.MapDimensions;
+import com.robertx22.library_of_exile.dimension.structure.MapStructure;
+import com.robertx22.library_of_exile.dimension.structure.PrebuiltMapCheck;
 import com.robertx22.library_of_exile.dimension.worlddata.MapStructureCounter;
 import com.robertx22.library_of_exile.events.base.EventConsumer;
 import com.robertx22.library_of_exile.events.base.ExileEvents;
 import com.robertx22.library_of_exile.main.ApiForgeEvents;
+import com.robertx22.library_of_exile.main.ExileLog;
 import com.robertx22.library_of_exile.registry.ExileRegistryType;
 import com.robertx22.library_of_exile.registry.helpers.OrderedModConstructor;
 import com.robertx22.library_of_exile.registry.register_info.ModRequiredRegisterInfo;
@@ -150,10 +153,16 @@ public class DungeonMain {
                     @Override
                     public void accept(MapChunkGenEvent event) {
                         if (event.mapId.equals("dungeon")) {
-                            MAIN_DUNGEON_STRUCTURE.generateInChunk(event.world, event.manager, event.chunk.getPos());
-                            ARENA.generateInChunk(event.world, event.manager, event.chunk.getPos());
-                            UBER_ARENA.generateInChunk(event.world, event.manager, event.chunk.getPos());
-                            REWARD_ROOM.generateInChunk(event.world, event.manager, event.chunk.getPos());
+                            // one try/catch each, deliberately. these four used to share one, and the
+                            // caller swallows whatever comes out of here, so a dungeon room that threw
+                            // took the arena, uber arena and reward room of that same chunk down with
+                            // it - leaving a chunk of solid bedrock that generation never revisits.
+                            // you notice it in the arena, because a missing maze room just looks like a
+                            // dead end while a missing arena quadrant is a wall in your face.
+                            carve(MAIN_DUNGEON_STRUCTURE, event);
+                            carve(ARENA, event);
+                            carve(UBER_ARENA, event);
+                            carve(REWARD_ROOM, event);
                         }
                     }
                 }, id("dungeon_chunk_gen"))
@@ -270,11 +279,38 @@ public class DungeonMain {
 
         ApiForgeEvents.registerForgeEvent(ServerStartedEvent.class, event -> {
             server = event.getServer();
+
+            // an arena that doesn't ship every room of its declared size leaves those chunks as solid
+            // bedrock for every instance that ever rolls it - silently, and identically to the
+            // intermittent generation bug. cheap to rule out once here instead of one report at a time.
+            List<PrebuiltMapCheck.Entry> maps = new ArrayList<>();
+            DungeonDatabase.BossArena().getList()
+                    .forEach(x -> maps.add(new PrebuiltMapCheck.Entry("boss arena '" + x.GUID() + "'", x.structure)));
+            DungeonDatabase.UberBoss().getList()
+                    .forEach(x -> maps.add(new PrebuiltMapCheck.Entry("uber arena '" + x.GUID() + "'", x.structure_data)));
+            maps.add(new PrebuiltMapCheck.Entry("reward room", REWARD_ROOM.getMap(new ChunkPos(0, 0))));
+
+            PrebuiltMapCheck.reportAll(event.getServer(), "Dungeon Realm arenas", maps);
         });
 
         S2CPacketRegister.register();
 
         LOG.info("Dungeon Realm loaded.");
+    }
+
+    /**
+     * Carves one structure into the chunk, isolated from the others sharing this event. The caller
+     * swallows exceptions, so anything thrown here would otherwise cancel every structure queued
+     * behind it and leave a chunk of permanent bedrock with nothing in the log to say so.
+     */
+    private static void carve(MapStructure<?> struc, MapChunkGenEvent event) {
+        try {
+            struc.generateInChunk(event.world, event.manager, event.chunk.getPos());
+        } catch (Exception e) {
+            ExileLog.get().error("Failed to generate '" + struc.guid() + "' in chunk " + event.chunk.getPos()
+                    + " of the dungeon dimension. That part of the chunk stays solid bedrock, and generation"
+                    + " never runs there again.", e);
+        }
     }
 
     private static List<Integer> mygetEmptySlotsRandomized(Container inventory, Random rand) {

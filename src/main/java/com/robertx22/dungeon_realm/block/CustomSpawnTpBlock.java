@@ -3,8 +3,10 @@ package com.robertx22.dungeon_realm.block;
 import com.robertx22.dungeon_realm.main.DungeonMain;
 import com.robertx22.library_of_exile.components.PlayerDataCapability;
 import com.robertx22.library_of_exile.dimension.structure.MapStructure;
+import com.robertx22.library_of_exile.dimension.structure.SimplePrebuiltMapStructure;
 import com.robertx22.library_of_exile.utils.TeleportUtils;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -50,6 +52,14 @@ public class CustomSpawnTpBlock extends Block {
                     } else {
                         pos = TeleportUtils.getSpawnTeleportPos(mapStructure, pPos);
                     }
+
+                    // a chunk generation failure leaves part of the arena as solid bedrock forever,
+                    // because a chunk is only ever offered to the structures once. this is the last
+                    // moment before the player is standing in it, and it costs nothing per tick.
+                    if (mapStructure instanceof SimplePrebuiltMapStructure prebuilt) {
+                        prebuilt.repairMissingChunks((ServerLevel) level, new ChunkPos(pos));
+                    }
+
                     var dim = level.dimensionTypeId().location();
                     PlayerDataCapability.get(p).mapTeleports.teleportToMap(p, dim, dim, pos);
                 }
