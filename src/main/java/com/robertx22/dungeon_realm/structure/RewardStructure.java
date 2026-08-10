@@ -15,9 +15,16 @@ public class RewardStructure extends SimplePrebuiltMapStructure {
         return "reward_room";
     }
 
+    // static, not a fresh instance per call: SimplePrebuiltMapData caches its resolved footprint in a
+    // transient field, so handing out a new one per chunk left that cache permanently cold and made
+    // generateInChunk re-probe the template manager on EVERY chunk. The reward room is the same one
+    // everywhere, so there is nothing per instance to keep apart.
+    private static final SimplePrebuiltMapData DATA =
+            new SimplePrebuiltMapData(0, DungeonMain.MODID + ":map_reward/sandstone");
+
     @Override
     public SimplePrebuiltMapData getMap(ChunkPos start) {
-        return new SimplePrebuiltMapData(0, DungeonMain.MODID + ":map_reward/sandstone");
+        return DATA;
         // todo
         /*
         var random = MapGenerationUTIL.createRandom(start);

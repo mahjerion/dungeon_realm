@@ -7,6 +7,7 @@ import com.robertx22.dungeon_realm.main.DungeonMain;
 import com.robertx22.library_of_exile.dimension.MapGenerationUTIL;
 import com.robertx22.library_of_exile.dimension.structure.dungeon.DungeonBuilder;
 import com.robertx22.library_of_exile.dimension.structure.dungeon.DungeonData;
+import com.robertx22.library_of_exile.dimension.structure.MapStructure;
 import com.robertx22.library_of_exile.dimension.structure.dungeon.DungeonStructure;
 import com.robertx22.library_of_exile.dimension.structure.dungeon.IDungeon;
 import com.robertx22.library_of_exile.utils.RandomUtils;
@@ -30,13 +31,22 @@ public class DungeonMapStructure extends DungeonStructure {
     }
 
     // one warning per instance: getMap runs per generated chunk and per mob spawn, so an unowned
-    // instance would otherwise flood the log
+    // instance would otherwise flood the log.
+    //
+    // Bounded, because "one entry per instance" is not the small number it sounds like: anything that
+    // generates ahead of the player (Distant Horizons, a blocking raycast) walks into instances nobody
+    // has ever been given, and on a long lived server that is thousands of them.
+    private static final int MAX_WARNED_INSTANCES = 4096;
     private static final Set<ChunkPos> WARNED_NO_MAP_DATA = ConcurrentHashMap.newKeySet();
 
     // a wipe hands the same coordinates out again to entirely different maps, so a coordinate that warned
     // before must be able to warn again - otherwise a real problem in a recycled instance stays silent
     public static void forgetWarnings() {
         WARNED_NO_MAP_DATA.clear();
+        DungeonStructure.forgetSkippedCarveWarnings();
+        // a wipe hands these coordinates to an entirely different map, so a chunk that had nothing
+        // placeable in it before has to be allowed to try again
+        MapStructure.forgetRepairFailures();
     }
 
     @Override
@@ -54,60 +64,35 @@ public class DungeonMapStructure extends DungeonStructure {
 
         String dungeon = saved;
         if (!resolved) {
-            // no usable map data for this instance, so there is no right answer here. it used to roll a
-            // dungeon from the WHOLE database on every chunk, which ignores Atlas unlocks and let one
-            // instance generate as several different dungeons at once. Reuse whatever was generated here
-            // first instead: a wrong theme is survivable, a half sewers half garden map is not. The
-            // builder is still flagged unresolved so the layout is never cached as the instance's
-            // identity, and the real map data wins the moment it becomes readable.
-            dungeon = placeholderDungeonFor(serverLevel, start);
+            // No usable map data, so there is no right answer - and nothing will be carved from this
+            // builder either way (getBuiltDungeon refuses to build an unresolved one). All this needs to
+            // do is give dungeonSettings SOMETHING with a room size and a mob list so it cannot NPE.
+            //
+            // It used to pin the roll in DungeonWorldData.generatedDungeonAtStart so that every chunk of
+            // a data-less instance agreed on the same wrong theme. That mattered only while such chunks
+            // were still being carved. Now that they aren't, the pin bought nothing and cost a great
+            // deal: it grew by one entry for every instance anything ever generated ahead of time - and
+            // it is serialized to NBT, so it grew the saved world too, forever.
+            IDungeon rolled = randomDungeonFor(start);
+            dungeon = rolled == null ? null : rolled.GUID();
 
-            if (WARNED_NO_MAP_DATA.add(start)) {
+            if (WARNED_NO_MAP_DATA.size() < MAX_WARNED_INSTANCES && WARNED_NO_MAP_DATA.add(start)) {
+                // the thread and the triggering chunk are the diagnostic bit: a worldgen worker name
+                // means ordinary player movement reached here, but "Server thread" means something
+                // force-generated this chunk synchronously from inside a tick - which is the shape of
+                // the raycast hang, and tells you the two problems are firing together.
                 DungeonMain.LOG.warn((saved == null || saved.isEmpty()
                         ? "No dungeon map data for the instance at " + start
                         : "The instance at " + start + " wants dungeon '" + saved + "', which is not registered")
-                        + ", generating '" + dungeon + "' as a placeholder. If a player is in this map, its"
-                        + " layout will not match the map item they used.");
+                        + ". Nothing will be carved here until it can be read - resolving '" + dungeon
+                        + "' only so the room size and mob list have an answer. Triggered by chunk " + cp
+                        + " on thread '" + Thread.currentThread().getName() + "'.");
             }
         }
 
         DungeonBuilder b = new DungeonBuilder(dungeonSettings(start, dungeon));
         b.resolvedFromMapData = resolved;
         return b;
-    }
-
-    /**
-     * The dungeon to build when the map data can't answer. Whatever was generated at this instance first
-     * wins, so every later chunk agrees with the rooms already written to disk.
-     */
-    private static String placeholderDungeonFor(ServerLevel level, ChunkPos start) {
-        DungeonMapCapability cap = level == null ? null : DungeonMapCapability.get(level);
-
-        // fast path, and the one that actually matters: every chunk of an instance with no map data
-        // comes through here, and all of them have to agree with whatever was built first.
-        if (cap != null) {
-            String already = cap.data.generatedDungeonAtStart.get(cap.data.data.getKey(start));
-            if (DungeonDatabase.Dungeons().isRegistered(already)) {
-                return already;
-            }
-        }
-
-        IDungeon rolled = randomDungeonFor(start);
-        if (rolled == null) {
-            // registry isn't loaded, so there is nothing to record. dungeonSettings hits the same wall a
-            // moment later and reports it as itself, which beats an NPE from inside worldgen.
-            return null;
-        }
-        if (cap == null) {
-            // nowhere to record it; a deterministic roll is still better than nothing
-            return rolled.GUID();
-        }
-
-        // merge, not putIfAbsent: several worldgen threads can reach this for the same instance at once
-        // and must all come out with the same dungeon, AND a recorded id that has since left the
-        // database has to be replaced rather than handed back forever.
-        return cap.data.generatedDungeonAtStart.merge(cap.data.data.getKey(start), rolled.GUID(),
-                (existing, fresh) -> DungeonDatabase.Dungeons().isRegistered(existing) ? existing : fresh);
     }
 
     /**

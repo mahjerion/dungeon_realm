@@ -166,6 +166,10 @@ public class DungeonMain {
                         }
                     }
                 }, id("dungeon_chunk_gen"))
+                // lets generation skip instances the counter has never handed out - see
+                // MapDimensionInfo.hasInstanceData. Distant Horizons and blocking raycasts both reach
+                // those, and building rooms there is worse than useless.
+                .instanceDataSource(level -> DungeonMapCapability.get(level).data.data)
                 .build();
 
 
