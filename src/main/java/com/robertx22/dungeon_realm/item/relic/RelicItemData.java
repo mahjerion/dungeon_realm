@@ -4,6 +4,8 @@ import com.robertx22.dungeon_realm.main.DungeonMain;
 import com.robertx22.library_of_exile.database.init.LibDatabase;
 import com.robertx22.library_of_exile.database.relic.relic_rarity.RelicRarity;
 import com.robertx22.library_of_exile.database.relic.relic_type.RelicType;
+import com.robertx22.library_of_exile.database.relic.stat.ExactRelicStat;
+import com.robertx22.library_of_exile.database.relic.stat.RelicMod;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -14,6 +16,10 @@ public class RelicItemData {
 
     public List<RelicAffixData> affixes = new ArrayList<>();
 
+    // the relic's single implicit affix, rolled from its own pool and not counted against the
+    // rarity's affix count. Null on relics saved before this field existed (no "implicit" tag in
+    // their nbt) - those simply have no implicit, same as how "uses" defaulted for old relics.
+    public RelicAffixData implicit = null;
 
     public String rar = "common";
 
@@ -39,6 +45,29 @@ public class RelicItemData {
     public boolean consumeUse() {
         uses--;
         return uses <= 0;
+    }
+
+    // implicit first, then the regular affixes - the display order everywhere
+    public List<RelicAffixData> getAllAffixes() {
+        List<RelicAffixData> all = new ArrayList<>();
+        if (implicit != null) {
+            all.add(implicit);
+        }
+        all.addAll(affixes);
+        return all;
+    }
+
+    // single source of truth for what this relic contributes to a map. The map device (what actually
+    // applies), its stat preview screen and the item tooltip each used to walk affixes -> mods ->
+    // toExact themselves, which is how the implicit could silently end up in one but not the others.
+    public List<ExactRelicStat> getExactStats() {
+        List<ExactRelicStat> ex = new ArrayList<>();
+        for (RelicAffixData affix : getAllAffixes()) {
+            for (RelicMod mod : affix.get().mods) {
+                ex.add(mod.toExact(affix.p));
+            }
+        }
+        return ex;
     }
 
     // given relics in slot order, returns the ones that actually count toward each RelicType's

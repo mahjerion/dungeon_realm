@@ -41,6 +41,9 @@ public class RelicGenerator {
         for (int i = 0; i < rar.affixes; i++) {
 
             var affix = LibDatabase.RelicAffixes().getFilterWrapped(x -> {
+                if (x.implicit) {
+                    return false; // implicits have their own dedicated slot, rolled below
+                }
                 if (data.affixes.stream().anyMatch(e -> e.id.equals(x.GUID()))) {
                     return false; // no same affixes
                 }
@@ -52,6 +55,21 @@ public class RelicGenerator {
 
             int perc = RandomUtils.RandomRange(rar.min_affix_percent, rar.max_affix_percent);
             data.affixes.add(new RelicAffixData(affix.GUID(), perc));
+        }
+
+        // exactly one implicit per relic, regardless of rarity. An implicit with an empty relic_type
+        // is shared across every relic type - that's how the league content guarantees work, since a
+        // content is owned by whichever mod registered it, not by a relic type.
+        var implicitPool = LibDatabase.RelicAffixes().getFilterWrapped(x -> {
+            if (!x.implicit) {
+                return false;
+            }
+            return x.relic_type.isEmpty() || type.GUID().equals(x.relic_type);
+        });
+        if (!implicitPool.list.isEmpty()) { // no implicits registered at all - relic just has none
+            var imp = implicitPool.random();
+            int perc = RandomUtils.RandomRange(rar.min_affix_percent, rar.max_affix_percent);
+            data.implicit = new RelicAffixData(imp.GUID(), perc);
         }
 
         return data;

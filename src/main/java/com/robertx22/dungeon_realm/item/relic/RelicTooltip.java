@@ -40,6 +40,21 @@ public class RelicTooltip extends TooltipItem {
 
         TooltipBuilder<RelicTooltip> b = new TooltipBuilder<>(new RelicTooltip(stack, data));
 
+        // implicit above the regular affixes under its own header, mirroring how gear shows implicits
+        b.add(x -> {
+            List<MutableComponent> all = new ArrayList<>();
+
+            if (data.implicit != null) {
+                all.add(Component.empty()); // separates the implicit from the item name above it
+                all.add(DungeonWords.RELIC_IMPLICIT.get().withStyle(ChatFormatting.BLUE));
+                for (RelicMod mod : data.implicit.get().mods) {
+                    var ex = mod.toExact(data.implicit.p);
+                    all.add(ex.getStat().getTooltip(ex.num));
+                }
+            }
+            return new ExileTooltipPart(TooltipOrder.FIRST, all);
+        });
+
         b.add(x -> {
             List<MutableComponent> all = new ArrayList<>();
 
@@ -49,7 +64,7 @@ public class RelicTooltip extends TooltipItem {
                     all.add(ex.getStat().getTooltip(ex.num));
                 }
             }
-            return new ExileTooltipPart(TooltipOrder.FIRST, all);
+            return new ExileTooltipPart(TooltipOrder.EARLY, all);
         });
 
         b.add(x -> {

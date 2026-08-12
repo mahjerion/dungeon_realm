@@ -1,10 +1,8 @@
 package com.robertx22.dungeon_realm.block_entity;
 
-import com.robertx22.dungeon_realm.item.relic.RelicAffixData;
 import com.robertx22.dungeon_realm.item.relic.RelicItemData;
 import com.robertx22.dungeon_realm.main.DungeonWords;
 import com.robertx22.library_of_exile.database.relic.stat.ExactRelicStat;
-import com.robertx22.library_of_exile.database.relic.stat.RelicMod;
 import com.robertx22.library_of_exile.database.relic.stat.RelicStat;
 import com.robertx22.library_of_exile.database.relic.stat.RelicStatsContainer;
 import net.minecraft.ChatFormatting;
@@ -158,11 +156,7 @@ public class MapDeviceScreen extends AbstractContainerScreen<MapDeviceMenu> impl
         List<ExactRelicStat> exactRelicStats = new ArrayList<>();
 
         for (RelicItemData data : relics) {
-            for (RelicAffixData affix : data.affixes) {
-                for (RelicMod mod : affix.get().mods) {
-                    exactRelicStats.add(mod.toExact(affix.p));
-                }
-            }
+            exactRelicStats.addAll(data.getExactStats());
         }
 
         var groupedRelicStats = RelicStatsContainer.calculate(exactRelicStats);

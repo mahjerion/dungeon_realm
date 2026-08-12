@@ -17,15 +17,15 @@ public class DungeonRelicStats extends ExileKeyHolder<RelicStat> {
     }
 
     public ExileKey<RelicStat, KeyInfo> BONUS_BOSS_FRAG_CHANCE = ExileKey.ofId(this, "bonus_boss_frag_chance", x -> {
-        var stat = new ManualRelicStat(x.GUID(), DungeonMain.MODID, "%1$s Increased Uber Fragment Drop chance from Map Bosses");
+        var stat = new ManualRelicStat(x.GUID(), DungeonMain.MODID, "%1$s Increased Uber Fragment Drop Chance from Bosses");
         return stat;
     });
     public ExileKey<RelicStat, KeyInfo> EXTRA_MAP_BOSS_CHANCE = ExileKey.ofId(this, "extra_map_boss_chance", x -> {
-        var stat = new ManualRelicStat(x.GUID(), DungeonMain.MODID, "%1$s Chance to spawn an extra Map Boss");
+        var stat = new ManualRelicStat(x.GUID(), DungeonMain.MODID, "%1$s Chance for Twinned Boss");
         return stat;
     });
     public ExileKey<RelicStat, KeyInfo> BONUS_MAP_ITEM_FROM_BOSS_CHANCE = ExileKey.ofId(this, "bonus_map_from_boss_chance", x -> {
-        var stat = new ManualRelicStat(x.GUID(), DungeonMain.MODID, "%1$s Chance to drop an extra Map from the Boss");
+        var stat = new ManualRelicStat(x.GUID(), DungeonMain.MODID, "%1$s Extra Map Drop Chance from Bosses");
         return stat;
     });
     public ExileKey<RelicStat, KeyInfo> PACK_SIZE = ExileKey.ofId(this, "pack_size", x -> {
@@ -34,7 +34,7 @@ public class DungeonRelicStats extends ExileKeyHolder<RelicStat> {
         return stat;
     });
     public ExileKey<RelicStat, KeyInfo> BONUS_CONTENT_CHANCE = ExileKey.ofId(this, "bonus_content_chance", x -> {
-        var stat = new ManualRelicStat(x.GUID(), DungeonMain.MODID, "%1$s Chance to Spawn Additional Bonus Content");
+        var stat = new ManualRelicStat(x.GUID(), DungeonMain.MODID, "%1$s Additional Event Chance");
         return stat;
     });
 

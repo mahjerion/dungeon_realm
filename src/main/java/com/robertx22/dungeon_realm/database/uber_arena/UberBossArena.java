@@ -70,7 +70,15 @@ public class UberBossArena implements JsonExileRegistry<UberBossArena>, IAutoGso
     public TranslationBuilder createTranslationBuilder() {
         return TranslationBuilder.of(modid)
                 .name(ExileTranslation.registry(this, name))
-                .desc(ExileTranslation.registry(this, desc));
+                .desc(ExileTranslation.of(chatKey(), desc));
+    }
+
+    // separate lang key from the NAME one - TranslationBuilder.build writes every translation into a
+    // map keyed by the lang key string, so reusing the registry key for both had whichever came last
+    // silently overwrite the other, leaving the altar's chat taunt showing the arena's name instead
+    private String chatKey() {
+        var type = getExileRegistryType();
+        return type.modid + "." + type.idWithoutModid + "." + GUID() + ".chat";
     }
 
     public UberBossArena withPinnacleBoss(EntityType bossEntity) {

@@ -1,12 +1,10 @@
 package com.robertx22.dungeon_realm.block_entity;
 
 import com.robertx22.dungeon_realm.item.DungeonItemNbt;
-import com.robertx22.dungeon_realm.item.relic.RelicAffixData;
 import com.robertx22.dungeon_realm.item.relic.RelicItemData;
 import com.robertx22.dungeon_realm.main.DungeonEntries;
 import com.robertx22.dungeon_realm.structure.DungeonMapCapability;
 import com.robertx22.library_of_exile.database.relic.stat.ExactRelicStat;
-import com.robertx22.library_of_exile.database.relic.stat.RelicMod;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.Container;
@@ -89,11 +87,7 @@ public class MapDeviceBE extends BlockEntity implements ContainerListener {
         List<ExactRelicStat> ex = new ArrayList<>();
 
         for (RelicItemData data : valid) {
-            for (RelicAffixData affix : data.affixes) {
-                for (RelicMod mod : affix.get().mods) {
-                    ex.add(mod.toExact(affix.p));
-                }
-            }
+            ex.addAll(data.getExactStats());
         }
         return ex;
     }

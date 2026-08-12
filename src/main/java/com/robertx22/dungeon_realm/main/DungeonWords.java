@@ -24,6 +24,7 @@ public enum DungeonWords implements ITranslated {
     RELIC_ITEM_INFO2("A Relic Key Item opens the Map Device"),
     RELIC_CONSUMED_ON_USE("Consumed once it has no uses remaining"),
     RELIC_USES_REMAINING("Uses Remaining: %1$s/%2$s"),
+    RELIC_IMPLICIT("Implicit:"),
     RELIC_MAX_COUNT("Maximum [%1$s] of this type can be used"),
     CREATIVE_TAB("Dungeon Realm"),
     SHOW_RELIC_STATS_HINT("Press '%1$s' to display all Relic Stats"),
