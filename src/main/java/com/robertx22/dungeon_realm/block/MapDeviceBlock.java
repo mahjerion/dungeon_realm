@@ -157,7 +157,24 @@ public class MapDeviceBlock extends BaseEntityBlock {
             stack.shrink(1);
 
             if (joinCurrentMap(p, be)) {
-                p.getServer().getLevel(ResourceKey.create(Registries.DIMENSION, DungeonMain.DIMENSION_KEY)).setBlock(pos.south(), DungeonEntries.MAP_DEVICE_BLOCK.get().defaultBlockState(), Block.UPDATE_ALL);
+                // deferred to arrival, not done here. joinCurrentMap only SCHEDULES the teleport, so
+                // at this point the instance's chunks are still generating - and setBlock into a
+                // chunk that isn't loaded is a blocking, generate-if-missing load on the server
+                // thread. Doing it inline was 4% of all time spent in ticks over 100ms, and it
+                // blocked on the very chunk the teleport had just asked to be loaded in the
+                // background, which cancelled out the whole point of waiting for it.
+                var dungeonLevel = p.getServer().getLevel(ResourceKey.create(Registries.DIMENSION, DungeonMain.DIMENSION_KEY));
+                BlockPos devicePos = pos.south();
+                Runnable placeReturnDevice = () -> dungeonLevel.setBlock(devicePos,
+                        DungeonEntries.MAP_DEVICE_BLOCK.get().defaultBlockState(), Block.UPDATE_ALL);
+
+                var cap = PlayerDataCapability.get(p);
+                var delayed = cap == null ? null : cap.delayedTeleportData;
+                if (delayed != null) {
+                    delayed.onArrival = placeReturnDevice;
+                } else {
+                    placeReturnDevice.run();
+                }
             }
 
 

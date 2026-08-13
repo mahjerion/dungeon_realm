@@ -311,9 +311,18 @@ public class DungeonMain {
         try {
             struc.generateInChunk(event.world, event.manager, event.chunk.getPos());
         } catch (Exception e) {
+            // deliberately not "stays solid bedrock": where in placeInWorld it threw decides what was
+            // lost, and only one of the two outcomes is repairable. Thrown before the blocks are
+            // written, the chunk really is permanent bedrock - generation is offered a chunk once - and
+            // the repair pass will re-carve it. Thrown in vanilla's post placement pass, every block is
+            // already down and only the room's entities are missing, so the repair correctly sees a
+            // carved chunk and leaves it alone. Reading the stack trace is the only way to tell, so say
+            // so instead of asserting the wrong one.
             ExileLog.get().error("Failed to generate '" + struc.guid() + "' in chunk " + event.chunk.getPos()
-                    + " of the dungeon dimension. That part of the chunk stays solid bedrock, and generation"
-                    + " never runs there again.", e);
+                    + " of the dungeon dimension. Generation is only offered this chunk once, so depending on"
+                    + " how far it got the chunk is either permanent bedrock awaiting the repair pass, or"
+                    + " carved but missing the room's entities. Check the trace below - if the top frames"
+                    + " are another mod's block, it is the second.", e);
         }
     }
 
