@@ -50,6 +50,7 @@ public class DungeonEntries {
     public static RegistryObject<DungeonMapItem> DUNGEON_MAP_ITEM = ITEMS.register("dungeon_map", () -> new DungeonMapItem());
     public static final RegistryObject<Item> FIXED_DUNGEON_MAP_ITEM = ITEMS.register("fixed_dungeon_map_item", DungeonMapItem::new);
     public static RegistryObject<Item> UBER_FRAGMENT = ITEMS.register("uber_fragment", () -> new Item(new Item.Properties().stacksTo(64)));
+    public static RegistryObject<Item> PINNACLE_FRAGMENT = ITEMS.register("pinnacle_fragment", () -> new Item(new Item.Properties().stacksTo(64)));
     public static RegistryObject<TeleportBackItem> HOME_TP_BACK = ITEMS.register("home_pearl", () -> new TeleportBackItem());
     public static RegistryObject<Item> RELIC_KEY = ITEMS.register("relic_key", () -> new Item(new Item.Properties().stacksTo(1)));
     public static RegistryObject<Item> RELIC_ITEM = ITEMS.register("general_relic", () -> new RelicItem());

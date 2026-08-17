@@ -1,5 +1,6 @@
 package com.robertx22.dungeon_realm.main;
 
+import com.robertx22.dungeon_realm.api.AnyPinnacleUnlockedEvent;
 import com.robertx22.dungeon_realm.api.DungeonExileEvents;
 import com.robertx22.dungeon_realm.api.GetDuplicateMapChanceEvent;
 import com.robertx22.dungeon_realm.api.GetRelicFindBonusEvent;
@@ -36,7 +37,9 @@ import net.minecraft.world.level.block.Block;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static com.robertx22.dungeon_realm.main.DungeonMain.DIMENSION_KEY;
 
@@ -101,6 +104,30 @@ public class DungeonEvents {
                         if (killer != null && RandomUtils.roll(DungeonExileEvents.GET_RELIC_FIND_BONUS.callEvents(new GetRelicFindBonusEvent(killer)).bonusPercent)) {
                             mob.spawnAtLocation(RelicGenerator.randomRelicItem(Optional.empty(), new RelicGenerator.Settings()));
                         }
+                    }
+                }
+
+                // Pinnacle Fragment: guaranteed off an Uber Boss, but only once someone in this
+                // arena has finished the Atlas pinnacle branch. Deliberately NOT on isPinnacleBoss -
+                // a Pinnacle Map's altar spawns the pinnacle boss instead of the uber one, so
+                // fragments come from uber runs only. One shared drop for the whole arena, same as
+                // the relics above; nobody's own unlock state gates picking it up.
+                if (dungeonEntityData.isUberBoss) {
+                    List<Player> arenaPlayers = DungeonMain.UBER_ARENA.getAllPlayersInMap(level, pos)
+                            .stream()
+                            // getAllPlayersInMap only compares start chunk pos, which repeats across
+                            // the dimension grid - isInside pins it to this actual arena
+                            .filter(p -> DungeonMain.MAP.isInside(DungeonMain.UBER_ARENA, (ServerLevel) level, p.blockPosition()))
+                            .collect(Collectors.toList());
+
+                    // the killer may have landed the last hit (ranged, or a DoT) from just outside
+                    // the arena bounds, so they always count as present
+                    if (killer != null && !arenaPlayers.contains(killer)) {
+                        arenaPlayers.add(killer);
+                    }
+
+                    if (DungeonExileEvents.ANY_PINNACLE_UNLOCKED.callEvents(new AnyPinnacleUnlockedEvent(arenaPlayers)).anyUnlocked) {
+                        mob.spawnAtLocation(DungeonEntries.PINNACLE_FRAGMENT.get().getDefaultInstance());
                     }
                 }
 
