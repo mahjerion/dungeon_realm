@@ -203,7 +203,13 @@ public class MapDeviceBlock extends BaseEntityBlock {
         }
 
         var pdata = PlayerDataCapability.get(p);
-        pdata.mapTeleports.entranceTeleportLogic(p, DungeonMain.DIMENSION_KEY, be.pos, grace);
+        // false means a teleport was already in flight for this player and this one was ignored, so say
+        // so rather than reporting a join that isn't happening - startNewMap keys its arrival work off
+        // this return, and doing that work for a teleport nobody scheduled would attach it to the
+        // teleport already on its way.
+        if (!pdata.mapTeleports.entranceTeleportLogic(p, DungeonMain.DIMENSION_KEY, be.pos, grace)) {
+            return false;
+        }
 
         // the entrance teleport is delayed and stats packets are otherwise only sent on kill/chest events,
         // so sync the joining player now, otherwise their client keeps showing the previous map's data.
