@@ -156,7 +156,8 @@ public class MapDeviceBlock extends BaseEntityBlock {
 
             stack.shrink(1);
 
-            if (joinCurrentMap(p, be)) {
+            // true: this is the instance-creating entry, the only one the spawn grace is for
+            if (joinCurrentMap(p, be, true)) {
                 // deferred to arrival, not done here. joinCurrentMap only SCHEDULES the teleport, so
                 // at this point the instance's chunks are still generating - and setBlock into a
                 // chunk that isn't loaded is a blocking, generate-if-missing load on the server
@@ -187,7 +188,13 @@ public class MapDeviceBlock extends BaseEntityBlock {
         }
     }
 
-    public static boolean joinCurrentMap(Player p, MapDeviceBE be) {
+    /**
+     * @param grace whether this entry gets the spawn grace. Only true when called from startNewMap,
+     *              which is the entry that creates the instance - a player walking back into a dungeon
+     *              that is already running arrives among content that already exists, so the grace would
+     *              protect nobody while holding back the chunks they haven't reached yet.
+     */
+    public static boolean joinCurrentMap(Player p, MapDeviceBE be, boolean grace) {
 
         var event = new CanEnterMapEvent(p, be);
         DungeonExileEvents.CAN_ENTER_MAP.callEvents(event);
@@ -196,7 +203,7 @@ public class MapDeviceBlock extends BaseEntityBlock {
         }
 
         var pdata = PlayerDataCapability.get(p);
-        pdata.mapTeleports.entranceTeleportLogic(p, DungeonMain.DIMENSION_KEY, be.pos);
+        pdata.mapTeleports.entranceTeleportLogic(p, DungeonMain.DIMENSION_KEY, be.pos, grace);
 
         // the entrance teleport is delayed and stats packets are otherwise only sent on kill/chest events,
         // so sync the joining player now, otherwise their client keeps showing the previous map's data.
@@ -251,7 +258,8 @@ public class MapDeviceBlock extends BaseEntityBlock {
                     DungeonExileEvents.OPEN_ATLAS_MAP.callEvents(new OpenAtlasMapEvent(p));
                 } else {
                     if (obe.isActivated()) {
-                        joinCurrentMap(p, obe);
+                        // false: the instance is already running, so no spawn grace - see joinCurrentMap
+                        joinCurrentMap(p, obe, false);
                     } else {
                         DungeonExileEvents.OPEN_ATLAS_MAP.callEvents(new OpenAtlasMapEvent(p));
                     }
