@@ -36,9 +36,14 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
+import net.minecraftforge.event.entity.living.MobSpawnEvent;
+import net.minecraftforge.eventbus.api.Event;
 
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.robertx22.dungeon_realm.main.DungeonMain.DIMENSION_KEY;
@@ -217,6 +222,37 @@ public class DungeonEvents {
             });
         });
 
+        // Map completion is kills/spawns, so a mob that leaves the world without dying makes the goal
+        // unreachable and the boss portal never unlocks.
+        //
+        // Every instance lives in the SAME dimension, DUNGEON_LENGTH (90) chunks apart, and vanilla's
+        // Mob.checkDespawn asks only "is the nearest player anywhere in this level further than 128
+        // blocks away". It has no concept of instances. So the moment an instance's last player dies or
+        // logs out, its mobs find their "nearest player" 1440+ blocks away in somebody else's dungeon
+        // and delete themselves - a live-server-only bug, because solo the level has no players at all
+        // and getNearestPlayer returns null, which despawns nothing.
+        //
+        // A mob kept alive this way costs nothing: it leaves entity-ticking range within seconds and is
+        // then written to disk by the normal chunk unload (RemovalReason.UNLOADED_TO_CHUNK), which is a
+        // save, not a delete - it was never what lost progress. Only DISCARDED is.
+        //
+        // Deliberately NOT touched: despawning while a player IS in the instance. Walking 128 blocks
+        // away still despawns exactly as before, because letting mobs vanish for free is what would let
+        // players shrink the completion denominator on purpose.
+        ApiForgeEvents.registerForgeEvent(MobSpawnEvent.AllowDespawn.class, event -> {
+            try {
+                ServerLevel level = event.getLevel().getLevel();
+                if (!isDungeonRealmDimension(level.dimension())) {
+                    return;
+                }
+                if (!instanceHasPlayer(level, event.getEntity().blockPosition())) {
+                    event.setResult(Event.Result.DENY);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+
         ExileEvents.DUNGEON_DATA_BLOCK_PLACED.register(new EventConsumer<>() {
             @Override
             public void accept(ExileEvents.DungeonDataBlockPlaced event) {
@@ -299,6 +335,32 @@ public class DungeonEvents {
 
     public static boolean isDungeonRealmDimension(ResourceKey<Level> levelResourceKey) {
         return levelResourceKey.location().compareTo(DIMENSION_KEY) == 0;
+    }
+
+    // Which instances currently have somebody standing in them, answered once per tick for the whole
+    // dimension rather than once per mob: checkDespawn runs for every loaded mob every tick, so the
+    // obvious getAllPlayersInMap call would allocate a List thousands of times a second. Cached this way
+    // it costs one pass over the dimension's players per tick, then a single set lookup per mob.
+    //
+    // Plain fields, no locking: AllowDespawn is only ever fired from ServerLevel's own tick, on the
+    // server thread. A stale stamp can at worst rebuild the set an extra time, never hand out a wrong
+    // answer, because the stamp and the set are written together on that one thread.
+    private static long occupiedStamp = Long.MIN_VALUE;
+    private static Set<ChunkPos> occupiedInstances = Collections.emptySet();
+
+    private static boolean instanceHasPlayer(ServerLevel level, BlockPos pos) {
+        long now = level.getGameTime();
+        if (now != occupiedStamp) {
+            Set<ChunkPos> set = new HashSet<>();
+            for (Player p : level.players()) {
+                set.add(DungeonMain.MAIN_DUNGEON_STRUCTURE.getStartChunkPos(p.blockPosition()));
+            }
+            occupiedInstances = set;
+            occupiedStamp = now;
+        }
+        // the arena, uber arena and reward structures all delegate INTERNALgetStartChunkPos to the main
+        // dungeon structure, so a player in any of them resolves to the same instance key as its mobs
+        return occupiedInstances.contains(DungeonMain.MAIN_DUNGEON_STRUCTURE.getStartChunkPos(pos));
     }
 
     // we're only spawning bonus content in the main map dim+structure

@@ -29,7 +29,14 @@ public class BossMB extends MapDataBlock implements IGetMobSpawnBlockKind {
 
     @Override
     public void processImplementationINTERNAL(String s, BlockPos pos, Level level, CompoundTag nbt, MapBlockCtx ctx) {
-        EntityType<? extends LivingEntity> type = DungeonMain.DUNGEON_MOB_SPAWNS.getPredeterminedRandom(level, pos).getRandomMob().getType();
+        // null when every mob on this list belongs to a mod that is not installed. skipping the
+        // spawner costs one empty room; dereferencing it here would abort chunk processing for the
+        // whole map - see MobList.getRandomMob.
+        var entry = DungeonMain.DUNGEON_MOB_SPAWNS.getPredeterminedRandom(level, pos).getRandomMob();
+        if (entry == null) {
+            return;
+        }
+        EntityType<? extends LivingEntity> type = entry.getType();
 
 
         MobBuilder.of(type, this, x -> {
