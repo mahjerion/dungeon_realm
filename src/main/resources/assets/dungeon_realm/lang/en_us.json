@@ -37,7 +37,7 @@
 	"dungeon_realm.words.map_has_uber_arena": "- { Area Contains an Uber Boss Portal } -",
 	"dungeon_realm.words.map_item_desc": "This item allows you to enter the Dungeon Realm",
 	"dungeon_realm.words.map_item_use_info": "Right Click the [Map Device Block] with the map to start it.",
-	"dungeon_realm.words.map_layout": "Map layout: %1$s",
+	"dungeon_realm.words.map_layout": "Map Layout: %1$s",
 	"dungeon_realm.words.map_name_bastion": "Bastion",
 	"dungeon_realm.words.map_name_brick": "Brick",
 	"dungeon_realm.words.map_name_cement": "Cement",
