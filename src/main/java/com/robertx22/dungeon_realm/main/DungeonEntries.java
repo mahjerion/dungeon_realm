@@ -11,7 +11,6 @@ import com.robertx22.dungeon_realm.item.recipe.FixedDungeonMapRecipe;
 import com.robertx22.dungeon_realm.item.recipe.FixedDungeonMapRecipeSerializer;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
@@ -32,7 +31,6 @@ public class DungeonEntries {
     public static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, DungeonMain.MODID);
     public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(ForgeRegistries.BLOCK_ENTITY_TYPES, DungeonMain.MODID);
     public static final DeferredRegister<CreativeModeTab> CREATIVE_TAB = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, DungeonMain.MODID);
-    public static final DeferredRegister<MenuType<?>> MENUS = DeferredRegister.create(ForgeRegistries.MENU_TYPES, DungeonMain.MODID);
     public static final DeferredRegister<RecipeSerializer<?>> RECIPE_SERIALIZERS = DeferredRegister.create(ForgeRegistries.RECIPE_SERIALIZERS, DungeonMain.MODID);
 
     // blocks
@@ -52,7 +50,6 @@ public class DungeonEntries {
     public static RegistryObject<Item> UBER_FRAGMENT = ITEMS.register("uber_fragment", () -> new Item(new Item.Properties().stacksTo(64)));
     public static RegistryObject<Item> PINNACLE_FRAGMENT = ITEMS.register("pinnacle_fragment", () -> new Item(new Item.Properties().stacksTo(64)));
     public static RegistryObject<TeleportBackItem> HOME_TP_BACK = ITEMS.register("home_pearl", () -> new TeleportBackItem());
-    public static RegistryObject<Item> RELIC_KEY = ITEMS.register("relic_key", () -> new Item(new Item.Properties().stacksTo(1)));
     public static RegistryObject<Item> RELIC_ITEM = ITEMS.register("general_relic", () -> new RelicItem());
     public static final RegistryObject<RecipeSerializer<FixedDungeonMapRecipe>> FIXED_DUNGEON_MAP =
             RECIPE_SERIALIZERS.register("fixed_dungeon_map", FixedDungeonMapRecipeSerializer::new);
@@ -65,7 +62,6 @@ public class DungeonEntries {
         BLOCKS.register(bus);
         BLOCK_ENTITIES.register(bus);
         RECIPE_SERIALIZERS.register(bus);
-        DungeonMenuTypes.register(bus);
     }
 
     public static void init() {

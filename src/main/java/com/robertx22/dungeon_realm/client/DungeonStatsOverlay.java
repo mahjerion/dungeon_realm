@@ -178,14 +178,20 @@ public class DungeonStatsOverlay {
         g.blit(OVERLAY_TEXTURE, x, y + height - c, 0, ts - c, c, c, ts, ts); // Bottom-left
         g.blit(OVERLAY_TEXTURE, x + width - c, y + height - c, ts - c, ts - c, c, c, ts, ts); // Bottom-right
 
-        // Edges (stretch in one direction)
-        g.blit(OVERLAY_TEXTURE, x + c, y, c, 0, width - c * 2, c, ts, ts); // Top edge
-        g.blit(OVERLAY_TEXTURE, x + c, y + height - c, c, ts - c, width - c * 2, c, ts, ts); // Bottom edge
-        g.blit(OVERLAY_TEXTURE, x, y + c, 0, c, c, height - c * 2, ts, ts); // Left edge
-        g.blit(OVERLAY_TEXTURE, x + width - c, y + c, ts - c, c, c, height - c * 2, ts, ts); // Right edge
+        // Edges and centre are SCALED from the texture's inner region, not sampled 1:1. The plain blit
+        // overload reads one texture pixel per screen pixel, so a box wider than the 240px inner region
+        // read past the texture edge and wrapped, drawing a second frame inside the first.
+        int inner = ts - c * 2;
+        int w = width - c * 2;
+        int h = height - c * 2;
+
+        g.blit(OVERLAY_TEXTURE, x + c, y, w, c, c, 0, inner, c, ts, ts); // Top edge
+        g.blit(OVERLAY_TEXTURE, x + c, y + height - c, w, c, c, ts - c, inner, c, ts, ts); // Bottom edge
+        g.blit(OVERLAY_TEXTURE, x, y + c, c, h, 0, c, c, inner, ts, ts); // Left edge
+        g.blit(OVERLAY_TEXTURE, x + width - c, y + c, c, h, ts - c, c, c, inner, ts, ts); // Right edge
 
         // Center (fills the middle)
-        g.blit(OVERLAY_TEXTURE, x + c, y + c, c, c, width - c * 2, height - c * 2, ts, ts);
+        g.blit(OVERLAY_TEXTURE, x + c, y + c, w, h, c, c, inner, inner, ts, ts);
     }
 
     /**

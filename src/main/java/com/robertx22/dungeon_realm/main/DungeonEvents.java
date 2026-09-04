@@ -17,6 +17,8 @@ import com.robertx22.dungeon_realm.item.relic.RelicGenerator;
 import com.robertx22.dungeon_realm.structure.DungeonMapCapability;
 import com.robertx22.library_of_exile.components.LibMapCap;
 import com.robertx22.library_of_exile.config.map_dimension.ProcessMapChunks;
+import com.robertx22.library_of_exile.dimension.CurrentLeague;
+import com.robertx22.library_of_exile.dimension.MapContentType;
 import com.robertx22.library_of_exile.dimension.MapDimensions;
 import com.robertx22.library_of_exile.events.base.EventConsumer;
 import com.robertx22.library_of_exile.events.base.ExileEvents;
@@ -58,7 +60,23 @@ public class DungeonEvents {
             public void accept(ExileEvents.GrabLibMapData event) {
                 DungeonMain.ifMapData(event.level, event.pos).ifPresent(x -> {
                     var cap = LibMapCap.get(event.level).data;
-                    event.data = cap.getData(DungeonMain.MAIN_DUNGEON_STRUCTURE, event.pos);
+
+                    // the data is keyed by the DUNGEON's start chunk. A side encounter (harvest, obelisk)
+                    // lives in its own dimension on its own grid, so its position has to be translated
+                    // back to the dungeon that spawned it first - looked up with its raw position it
+                    // landed on an unrelated (usually empty) key and the dungeon's relics never applied.
+                    BlockPos dungeonPos = event.pos;
+                    var info = MapDimensions.getInfo(event.level);
+                    if (info != null && info.contentType == MapContentType.SIDE_CONTENT && event.level instanceof ServerLevel sl) {
+                        var con = CurrentLeague.getConnectedMap(sl, event.pos);
+                        if (con.isPresent()) {
+                            dungeonPos = con.get().cp.getMiddleBlockPosition(5);
+                        }
+                    }
+                    var data = cap.getData(DungeonMain.MAIN_DUNGEON_STRUCTURE, dungeonPos);
+                    if (data != null) {
+                        event.data = data;
+                    }
                 });
             }
         });

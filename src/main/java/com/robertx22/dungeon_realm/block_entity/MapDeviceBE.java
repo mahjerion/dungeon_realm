@@ -1,35 +1,57 @@
 package com.robertx22.dungeon_realm.block_entity;
 
+import com.robertx22.dungeon_realm.api.CanStartMapEvent;
+import com.robertx22.dungeon_realm.api.DungeonExileEvents;
+import com.robertx22.dungeon_realm.block.MapDeviceBlock;
 import com.robertx22.dungeon_realm.item.DungeonItemNbt;
-import com.robertx22.dungeon_realm.item.relic.RelicItemData;
+import com.robertx22.dungeon_realm.item.relic.RelicSlotUtil;
 import com.robertx22.dungeon_realm.main.DungeonEntries;
 import com.robertx22.dungeon_realm.structure.DungeonMapCapability;
-import com.robertx22.library_of_exile.database.relic.stat.ExactRelicStat;
+import com.robertx22.library_of_exile.database.relic.stat.RelicStatsContainer;
+import com.robertx22.library_of_exile.dimension.device.IMapDeviceBlockEntity;
+import com.robertx22.library_of_exile.dimension.device.MapDeviceKind;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.Container;
 import net.minecraft.world.ContainerListener;
 import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 
-public class MapDeviceBE extends BlockEntity implements ContainerListener {
-
+public class MapDeviceBE extends BlockEntity implements ContainerListener, IMapDeviceBlockEntity {
 
     public boolean gaveMap = false;
     public BlockPos pos = null;
 
     public String currentWorldUUID = "";
 
+    // slot 0 = the map, 1..4 = relics. see IMapDeviceBlockEntity
+    public SimpleContainer deviceInv = new SimpleContainer(SIZE);
+
+    // relics from a device saved before the 4 slot layout that did not fit the new grid. load() runs
+    // before the level is assigned, so they are dropped from the block ticker instead.
+    public List<ItemStack> pendingSpill = new ArrayList<>();
+
+    private static final String LEGACY_INV_KEY = "inv";
+    private static final String INV_KEY = "device_inv";
+
+    public MapDeviceBE(BlockPos pPos, BlockState pBlockState) {
+        super(DungeonEntries.MAP_DEVICE_BE.get(), pPos, pBlockState);
+        this.deviceInv.addListener(this);
+    }
+
+    @Override
     public boolean isActivated() {
         if (currentWorldUUID.isEmpty() || !currentWorldUUID.equals(DungeonMapCapability.getFromServer().data.data.uuid)) {
             return false;
         }
-
         return pos != null;
     }
 
@@ -38,59 +60,61 @@ public class MapDeviceBE extends BlockEntity implements ContainerListener {
         this.setChanged();
     }
 
-    public MapDeviceBE(BlockPos pPos, BlockState pBlockState) {
-        super(DungeonEntries.MAP_DEVICE_BE.get(), pPos, pBlockState);
+    // ------------------------------------------------------------------ IMapDeviceBlockEntity
 
-        this.inv.addListener(this);
-
+    @Override
+    public SimpleContainer getDeviceInventory() {
+        return deviceInv;
     }
 
-    public SimpleContainer inv = new SimpleContainer(27);
-
-
-    // consumes each relic whose affixes actually get folded into the returned stats (i.e. within its
-    // type's max_equipped cap, per RelicItemData.filterEquippable) - any excess of the same relic
-    // type is left in the inventory untouched, since its stats were never applied
-    public List<ExactRelicStat> consumeAndGetValidRelicStats() {
-        List<Integer> slots = new ArrayList<>();
-        List<RelicItemData> orderedBySlot = new ArrayList<>();
-
-        for (int i = 0; i < inv.getContainerSize(); i++) {
-            ItemStack stack = inv.getItem(i);
-
-            try {
-                if (!stack.isEmpty() && DungeonItemNbt.RELIC.has(stack)) {
-                    orderedBySlot.add(DungeonItemNbt.RELIC.loadFrom(stack));
-                    slots.add(i);
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-
-        List<RelicItemData> valid = RelicItemData.filterEquippable(orderedBySlot);
-
-        for (int idx = 0; idx < orderedBySlot.size(); idx++) {
-            RelicItemData data = orderedBySlot.get(idx);
-            if (!valid.contains(data)) {
-                continue; // excess of its type, past the max_equipped cap - leave it untouched
-            }
-
-            int slot = slots.get(idx);
-            if (data.consumeUse()) {
-                inv.removeItem(slot, 1);
-            } else {
-                DungeonItemNbt.RELIC.saveTo(inv.getItem(slot), data);
-            }
-        }
-
-        List<ExactRelicStat> ex = new ArrayList<>();
-
-        for (RelicItemData data : valid) {
-            ex.addAll(data.getExactStats());
-        }
-        return ex;
+    @Override
+    public MapDeviceKind getDeviceKind() {
+        return MapDeviceKind.DUNGEON;
     }
+
+    @Override
+    public boolean hasMapSlot(Level level) {
+        return true;
+    }
+
+    @Override
+    public boolean acceptsMapItem(ItemStack stack) {
+        return !stack.isEmpty() && DungeonItemNbt.DUNGEON_MAP.has(stack);
+    }
+
+    @Override
+    public boolean isFreeRunAvailable(Level level) {
+        return false;
+    }
+
+    @Override
+    public boolean startMap(Player player, Supplier<RelicStatsContainer> relicStats) {
+        ItemStack stack = deviceInv.getItem(MAP_SLOT);
+        if (!acceptsMapItem(stack)) {
+            return false;
+        }
+
+        // the main mod gates this on level, cooldown and resistances
+        var event = new CanStartMapEvent(stack, player);
+        DungeonExileEvents.CAN_START_MAP.callEvents(event);
+        if (!event.canEnter) {
+            return false;
+        }
+
+        MapDeviceBlock.startNewMap(player, stack, this, relicStats);
+        return true;
+    }
+
+    @Override
+    public boolean joinMap(Player player) {
+        if (!isActivated()) {
+            return false;
+        }
+        // false: the instance is already running, so no spawn grace - see MapDeviceBlock.joinCurrentMap
+        return MapDeviceBlock.joinCurrentMap(player, this, false);
+    }
+
+    // ------------------------------------------------------------------ nbt
 
     @Override
     protected void saveAdditional(CompoundTag nbt) {
@@ -100,9 +124,15 @@ public class MapDeviceBE extends BlockEntity implements ContainerListener {
             nbt.putLong("spawnpos", pos.asLong());
         }
 
-        nbt.put("inv", inv.createTag());
+        nbt.put(INV_KEY, deviceInv.createTag());
+        if (!pendingSpill.isEmpty()) {
+            SimpleContainer spill = new SimpleContainer(pendingSpill.size());
+            for (int i = 0; i < pendingSpill.size(); i++) {
+                spill.setItem(i, pendingSpill.get(i));
+            }
+            nbt.put("spill", spill.createTag());
+        }
         nbt.putString("uid", currentWorldUUID);
-
     }
 
     @Override
@@ -112,8 +142,48 @@ public class MapDeviceBE extends BlockEntity implements ContainerListener {
         if (pTag.contains("spawnpos")) {
             this.pos = BlockPos.of(pTag.getLong("spawnpos"));
         }
-        inv.fromTag(pTag.getList("inv", 10)); // todo care when porting
         this.currentWorldUUID = pTag.getString("uid");
+
+        if (pTag.contains(INV_KEY)) {
+            deviceInv.fromTag(pTag.getList(INV_KEY, 10));
+        } else if (pTag.contains(LEGACY_INV_KEY)) {
+            migrateLegacyInventory(pTag);
+        }
+
+        if (pTag.contains("spill")) {
+            SimpleContainer spill = new SimpleContainer(64);
+            spill.fromTag(pTag.getList("spill", 10));
+            for (int i = 0; i < spill.getContainerSize(); i++) {
+                if (!spill.getItem(i).isEmpty()) {
+                    pendingSpill.add(spill.getItem(i));
+                }
+            }
+        }
+    }
+
+    /**
+     * Devices saved before the GUI rework had a 27 slot relic chest. The first four relics move into the
+     * relic slots in their old order, everything else is queued to be dropped on the ground by the ticker
+     * so nothing is silently lost.
+     */
+    private void migrateLegacyInventory(CompoundTag pTag) {
+        SimpleContainer legacy = new SimpleContainer(27);
+        legacy.fromTag(pTag.getList(LEGACY_INV_KEY, 10));
+
+        int relicSlot = RELIC_SLOT_START;
+        for (int i = 0; i < legacy.getContainerSize(); i++) {
+            ItemStack stack = legacy.getItem(i);
+            if (stack.isEmpty()) {
+                continue;
+            }
+            if (relicSlot < RELIC_SLOT_START + RELIC_SLOTS && RelicSlotUtil.isRelic(stack)) {
+                deviceInv.setItem(relicSlot++, stack);
+            } else {
+                pendingSpill.add(stack);
+            }
+        }
+        // the next save writes the new key, so this only ever runs once per device
+        setChanged();
     }
 
     // this i think allows me to make sure the inventory + block entity is dirty easily

@@ -1,19 +1,15 @@
 package com.robertx22.dungeon_realm.block;
 
 import com.robertx22.dungeon_realm.api.CanEnterMapEvent;
-import com.robertx22.dungeon_realm.api.CanStartMapEvent;
 import com.robertx22.dungeon_realm.api.DungeonExileEvents;
 import com.robertx22.dungeon_realm.api.OnStartMapEvent;
-import com.robertx22.dungeon_realm.api.OpenAtlasMapEvent;
 import com.robertx22.dungeon_realm.block_entity.MapDeviceBE;
-import com.robertx22.dungeon_realm.block_entity.MapDeviceMenu;
 import com.robertx22.dungeon_realm.database.holders.DungeonMapBlocks;
 import com.robertx22.dungeon_realm.item.DungeonItemMapData;
 import com.robertx22.dungeon_realm.item.DungeonItemNbt;
 import com.robertx22.dungeon_realm.item.DungeonMapItem;
 import com.robertx22.dungeon_realm.main.DungeonEntries;
 import com.robertx22.dungeon_realm.main.DungeonMain;
-import com.robertx22.dungeon_realm.main.DungeonWords;
 import com.robertx22.dungeon_realm.structure.DungeonMapCapability;
 import com.robertx22.dungeon_realm.structure.DungeonMapData;
 import com.robertx22.library_of_exile.components.LibMapCap;
@@ -22,6 +18,7 @@ import com.robertx22.library_of_exile.components.PlayerDataCapability;
 import com.robertx22.library_of_exile.database.init.LibDatabase;
 import com.robertx22.library_of_exile.database.relic.stat.RelicStatsContainer;
 import com.robertx22.library_of_exile.dimension.MapDimensions;
+import com.robertx22.library_of_exile.events.base.ExileEvents;
 import com.robertx22.library_of_exile.utils.TeleportUtils;
 import com.robertx22.library_of_exile.utils.geometry.Circle2d;
 import net.minecraft.ChatFormatting;
@@ -32,11 +29,9 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.Container;
+import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.SimpleMenuProvider;
-import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -53,7 +48,9 @@ import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.BlockHitResult;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.function.Supplier;
 
 public class MapDeviceBlock extends BaseEntityBlock {
     public MapDeviceBlock() {
@@ -70,8 +67,13 @@ public class MapDeviceBlock extends BaseEntityBlock {
         if (blockentity instanceof MapDeviceBE be) {
             all.add(asItem().getDefaultInstance());
 
-            for (int i = 0; i < be.inv.getContainerSize(); i++) {
-                var s = be.inv.getItem(i);
+            for (int i = 0; i < be.deviceInv.getContainerSize(); i++) {
+                var s = be.deviceInv.getItem(i);
+                if (!s.isEmpty()) {
+                    all.add(s.copy());
+                }
+            }
+            for (ItemStack s : be.pendingSpill) {
                 if (!s.isEmpty()) {
                     all.add(s.copy());
                 }
@@ -99,7 +101,12 @@ public class MapDeviceBlock extends BaseEntityBlock {
         }
     }
 
-    public static void startNewMap(Player p, ItemStack stack, MapDeviceBE be) {
+    /**
+     * @param relics resolved exactly once, right where the instance data is written. The device GUI consumes
+     *               relic uses inside this supplier, so a start that never reaches this point (gated by
+     *               CanStartMapEvent before the call) costs nothing. May yield null when no relics are slotted.
+     */
+    public static void startNewMap(Player p, ItemStack stack, MapDeviceBE be, Supplier<RelicStatsContainer> relics) {
 
         try {
             DungeonItemMapData map = DungeonItemNbt.DUNGEON_MAP.loadFrom(stack);
@@ -119,7 +126,8 @@ public class MapDeviceBlock extends BaseEntityBlock {
             }
 
             var libdata = new LibMapData();
-            libdata.relicStats = RelicStatsContainer.calculate(be.consumeAndGetValidRelicStats());
+            RelicStatsContainer relicStats = relics == null ? null : relics.get();
+            libdata.relicStats = relicStats == null ? new RelicStatsContainer(new HashMap<>()) : relicStats;
 
             data.bonusContents.setupOnMapStart(stack, libdata, p);
 
@@ -154,7 +162,9 @@ public class MapDeviceBlock extends BaseEntityBlock {
             var event = new OnStartMapEvent(p, stack, start, DungeonMain.MAP);
             DungeonExileEvents.ON_START_NEW_MAP.callEvents(event);
 
+            // the stack is the one sitting in the device's map slot, so this empties the slot
             stack.shrink(1);
+            be.deviceInv.setChanged();
 
             // true: this is the instance-creating entry, the only one the spawn grace is for
             if (joinCurrentMap(p, be, true)) {
@@ -220,10 +230,6 @@ public class MapDeviceBlock extends BaseEntityBlock {
         return true;
     }
 
-    public static MapDeviceMenu inventory(int pContainerId, Inventory pPlayerInventory, Container pContainer) {
-        return new MapDeviceMenu(pContainerId, pPlayerInventory, pContainer, 3);
-    }
-
     @Override
     public InteractionResult use(BlockState pState, Level world, BlockPos pPos, Player p, InteractionHand pHand, BlockHitResult pHit) {
 
@@ -232,6 +238,7 @@ public class MapDeviceBlock extends BaseEntityBlock {
 
             if (be instanceof MapDeviceBE obe) {
 
+                // the return device placed inside the instance: leave, or shift to go all the way home
                 if (MapDimensions.isMap(world)) {
                     if (p.isCrouching()) {
                         PlayerDataCapability.get(p).mapTeleports.teleportHome(p);
@@ -240,37 +247,10 @@ public class MapDeviceBlock extends BaseEntityBlock {
                     }
                     return InteractionResult.SUCCESS;
                 }
-                ItemStack stack = p.getMainHandItem();
 
-                if (stack.is(DungeonEntries.RELIC_KEY.get())) {
-                    p.openMenu(new SimpleMenuProvider((i, playerInventory, playerEntity) -> {
-                        return inventory(i, playerInventory, obe.inv); // todo why doesnt vanilla have this
-                    }, DungeonWords.RELIC_CONTAINER.get()));
-                    return InteractionResult.SUCCESS;
-                }
-
-                if (DungeonItemNbt.DUNGEON_MAP.has(stack)) {
-
-                    var event = new CanStartMapEvent(stack, p);
-
-                    DungeonExileEvents.CAN_START_MAP.callEvents(event);
-
-                    if (!event.canEnter) {
-                        return InteractionResult.SUCCESS;
-                    }
-
-                    startNewMap(p, stack, obe);
-                } else if (p.isCrouching()) {
-                    DungeonExileEvents.OPEN_ATLAS_MAP.callEvents(new OpenAtlasMapEvent(p));
-                } else {
-                    if (obe.isActivated()) {
-                        // false: the instance is already running, so no spawn grace - see joinCurrentMap
-                        joinCurrentMap(p, obe, false);
-                    } else {
-                        DungeonExileEvents.OPEN_ATLAS_MAP.callEvents(new OpenAtlasMapEvent(p));
-                    }
-                }
-
+                // everything else - slotting the map and relics, the atlas, starting or joining - goes
+                // through the shared device GUI, which the main mod opens for this player
+                ExileEvents.OPEN_MAP_DEVICE.callEvents(new ExileEvents.OpenMapDeviceEvent(p, world, pPos));
             }
         }
 
@@ -290,10 +270,17 @@ public class MapDeviceBlock extends BaseEntityBlock {
 
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level pLevel, BlockState pState, BlockEntityType<T> pBlockEntityType) {
-        return new BlockEntityTicker<T>() {
-            @Override
-            public void tick(Level pLevel, BlockPos pPos, BlockState pState, T pBlockEntity) {
-                // todo
+        if (pLevel.isClientSide) {
+            return null;
+        }
+        return (level, pos, state, blockEntity) -> {
+            if (blockEntity instanceof MapDeviceBE be && !be.pendingSpill.isEmpty()) {
+                // relics from a pre-rework device that had no slot to migrate into, see MapDeviceBE.load
+                for (ItemStack stack : be.pendingSpill) {
+                    Containers.dropItemStack(level, pos.getX() + 0.5, pos.getY() + 1, pos.getZ() + 0.5, stack);
+                }
+                be.pendingSpill.clear();
+                be.setChanged();
             }
         };
     }

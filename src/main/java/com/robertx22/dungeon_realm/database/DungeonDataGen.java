@@ -48,7 +48,6 @@ public class DungeonDataGen implements DataProvider {
         TranslationBuilder.of(DungeonMain.MODID).name(ExileTranslation.item(DungeonEntries.PINNACLE_FRAGMENT.get(), ChatFormatting.DARK_RED + "Pinnacle Fragment")).build();
         TranslationBuilder.of(DungeonMain.MODID).name(ExileTranslation.item(DungeonEntries.HOME_TP_BACK.get(), "Home Pearl")).build();
         TranslationBuilder.of(DungeonMain.MODID).name(ExileTranslation.item(DungeonEntries.RELIC_ITEM.get(), ChatFormatting.GOLD + "Dungeon Relic")).build();
-        TranslationBuilder.of(DungeonMain.MODID).name(ExileTranslation.item(DungeonEntries.RELIC_KEY.get(), "Relic Key")).build();
 
         TranslationBuilder.of(DungeonMain.MODID).name(ExileTranslation.block(DungeonEntries.MAP_DEVICE_BLOCK.get(), "Map Device")).build();
 
