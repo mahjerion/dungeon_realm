@@ -211,14 +211,15 @@ public class DungeonEvents {
 
                     // duplicate map: the killer's Atlas duplicate_map_chance rolls to also drop an exact
                     // copy of the run map (rebuilt from the map-start snapshot). Killer-side, matching the
-                    // uber fragment drop that shares this hook.
+                    // uber fragment drop that shares this hook. NOT the raw snapshot - that still carries
+                    // this instance's grid cell and would re-enter the dungeon that was just cleared.
                     if (killer != null) {
                         float dupeChance = DungeonExileEvents.GET_DUPLICATE_MAP_CHANCE.callEvents(new GetDuplicateMapChanceEvent(killer)).bonusPercent;
                         if (dupeChance > 0 && RandomUtils.roll(dupeChance)) {
                             DungeonMain.ifMapData(level, pos).ifPresent(mapData -> {
-                                var copy = mapData.getSnapshotStack();
+                                var copy = mapData.getFreshCopyOfSnapshot();
                                 if (!copy.isEmpty()) {
-                                    mob.spawnAtLocation(copy.copy());
+                                    mob.spawnAtLocation(copy);
                                 }
                             });
                         }

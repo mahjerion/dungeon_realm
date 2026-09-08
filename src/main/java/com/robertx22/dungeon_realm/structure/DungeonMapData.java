@@ -2,6 +2,7 @@ package com.robertx22.dungeon_realm.structure;
 
 import com.robertx22.dungeon_realm.configs.DungeonConfig;
 import com.robertx22.dungeon_realm.item.DungeonItemMapData;
+import com.robertx22.dungeon_realm.item.DungeonItemNbt;
 import com.robertx22.dungeon_realm.main.DungeonMain;
 import com.robertx22.dungeon_realm.main.DungeonWords;
 import com.robertx22.dungeon_realm.packets.DungeonStatsPacket;
@@ -285,6 +286,29 @@ public class DungeonMapData {
         } catch (Exception e) {
             return ItemStack.EMPTY;
         }
+    }
+
+    /**
+     * The snapshot as a map item that can be slotted again. The snapshot is taken in
+     * MapDeviceBlock.startNewMap AFTER getOrSetStartPos stamped this instance's grid cell into the
+     * item, and getOrSetStartPos only allocates a cell when x and z are both 0 - so a raw copy of the
+     * snapshot re-enters this very instance: already generated chunks, spawners and chests already
+     * consumed. Only the cell is cleared; tier, rarity, affixes, dungeon, uber/pinnacle and bonus
+     * contents are exactly what a copy of the map should keep.
+     */
+    public ItemStack getFreshCopyOfSnapshot() {
+        ItemStack copy = getSnapshotStack();
+        if (copy.isEmpty()) {
+            return copy;
+        }
+        DungeonItemMapData item = DungeonItemNbt.DUNGEON_MAP.loadFrom(copy);
+        if (item == null) {
+            return ItemStack.EMPTY;
+        }
+        item.x = 0;
+        item.z = 0;
+        DungeonItemNbt.DUNGEON_MAP.saveTo(copy, item);
+        return copy;
     }
 
     private void checkBossTeleportUnlock(ServerLevel level, BlockPos pos, int rarityProgressPercent) {

@@ -9,6 +9,7 @@ import com.robertx22.dungeon_realm.main.DungeonEntries;
 import com.robertx22.dungeon_realm.structure.DungeonMapCapability;
 import com.robertx22.library_of_exile.database.relic.stat.RelicStatsContainer;
 import com.robertx22.library_of_exile.dimension.device.IMapDeviceBlockEntity;
+import com.robertx22.library_of_exile.dimension.device.MapDeviceInvNbt;
 import com.robertx22.library_of_exile.dimension.device.MapDeviceKind;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -124,7 +125,7 @@ public class MapDeviceBE extends BlockEntity implements ContainerListener, IMapD
             nbt.putLong("spawnpos", pos.asLong());
         }
 
-        nbt.put(INV_KEY, deviceInv.createTag());
+        nbt.put(INV_KEY, MapDeviceInvNbt.save(deviceInv));
         if (!pendingSpill.isEmpty()) {
             SimpleContainer spill = new SimpleContainer(pendingSpill.size());
             for (int i = 0; i < pendingSpill.size(); i++) {
@@ -145,7 +146,7 @@ public class MapDeviceBE extends BlockEntity implements ContainerListener, IMapD
         this.currentWorldUUID = pTag.getString("uid");
 
         if (pTag.contains(INV_KEY)) {
-            deviceInv.fromTag(pTag.getList(INV_KEY, 10));
+            MapDeviceInvNbt.load(deviceInv, pTag.getList(INV_KEY, 10), this::acceptsMapItem);
         } else if (pTag.contains(LEGACY_INV_KEY)) {
             migrateLegacyInventory(pTag);
         }
