@@ -43,6 +43,8 @@ publishMods {
 
     curseforge {
         accessToken = file("key.properties").exists() ? file("key.properties").text.trim() : ""
+        clientRequired = true
+        serverRequired = true
         requires { slug = "library-of-exile" }
     }
     modrinth {
