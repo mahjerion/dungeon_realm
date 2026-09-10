@@ -18,6 +18,12 @@ import java.util.Map;
  * consumption on map start and the stat preview all read the same slots the same way. The main mod's
  * device GUI calls these for the dungeon, harvest and obelisk devices alike - those two addons never see
  * relic NBT themselves, they only receive the resulting {@link RelicStatsContainer}.
+ * <p>
+ * Every device names the one relic type it takes ({@code requiredType}, a
+ * {@link com.robertx22.library_of_exile.database.relic.relic_type.RelicType} id, which is the owning
+ * modid). A league's relic stats only do anything inside that league, so the map device takes dungeon
+ * relics, the harvest altar harvest relics and so on. A relic of another type is never placeable, and one
+ * that is already in a slot (from before this rule) is ignored rather than consumed.
  */
 public class RelicSlotUtil {
 
@@ -25,18 +31,21 @@ public class RelicSlotUtil {
      * The relics in the slot range, in slot order, already reduced to the ones that would actually apply
      * (first slots win within each type's max_equipped cap).
      */
-    public static List<RelicItemData> loadEquippable(Container inv, int from, int count) {
-        return RelicItemData.filterEquippable(new ArrayList<>(loadAll(inv, from, count).values()));
+    public static List<RelicItemData> loadEquippable(Container inv, int from, int count, String requiredType) {
+        return RelicItemData.filterEquippable(new ArrayList<>(loadAll(inv, from, count, requiredType).values()));
     }
 
-    /** slot index -> relic data for every relic in the range, in slot order */
-    private static LinkedHashMap<Integer, RelicItemData> loadAll(Container inv, int from, int count) {
+    /** slot index -> relic data for every relic of the required type in the range, in slot order */
+    private static LinkedHashMap<Integer, RelicItemData> loadAll(Container inv, int from, int count, String requiredType) {
         LinkedHashMap<Integer, RelicItemData> map = new LinkedHashMap<>();
         for (int i = from; i < from + count && i < inv.getContainerSize(); i++) {
             ItemStack stack = inv.getItem(i);
             try {
                 if (!stack.isEmpty() && DungeonItemNbt.RELIC.has(stack)) {
-                    map.put(i, DungeonItemNbt.RELIC.loadFrom(stack));
+                    RelicItemData data = DungeonItemNbt.RELIC.loadFrom(stack);
+                    if (data.type.equals(requiredType)) {
+                        map.put(i, data);
+                    }
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -49,28 +58,39 @@ public class RelicSlotUtil {
         return !stack.isEmpty() && DungeonItemNbt.RELIC.has(stack);
     }
 
-    /**
-     * Whether the stack may go into {@code targetSlot}: it has to be a relic, and adding it must not push
-     * its type past {@link com.robertx22.library_of_exile.database.relic.relic_type.RelicType#max_equipped}
-     * counting the other relics already in the range (the target slot itself is excluded, so replacing a
-     * relic of the same type is always fine).
-     */
-    public static boolean canPlace(Container inv, int from, int count, int targetSlot, ItemStack stack) {
+    /** whether the stack is a relic of exactly this type */
+    public static boolean isRelicOfType(ItemStack stack, String requiredType) {
         if (!isRelic(stack)) {
             return false;
         }
         try {
+            return DungeonItemNbt.RELIC.loadFrom(stack).type.equals(requiredType);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
+     * Whether the stack may go into {@code targetSlot}: it has to be a relic of the device's type, and
+     * adding it must not push that type past
+     * {@link com.robertx22.library_of_exile.database.relic.relic_type.RelicType#max_equipped} counting
+     * the other relics already in the range (the target slot itself is excluded, so replacing a relic is
+     * always fine).
+     */
+    public static boolean canPlace(Container inv, int from, int count, int targetSlot, ItemStack stack, String requiredType) {
+        if (!isRelicOfType(stack, requiredType)) {
+            return false;
+        }
+        try {
             RelicItemData data = DungeonItemNbt.RELIC.loadFrom(stack);
-            String type = data.getType().id;
 
             int existing = 0;
-            for (var en : loadAll(inv, from, count).entrySet()) {
+            for (var en : loadAll(inv, from, count, requiredType).entrySet()) {
                 if (en.getKey() == targetSlot) {
                     continue;
                 }
-                if (en.getValue().getType().id.equals(type)) {
-                    existing++;
-                }
+                existing++;
             }
             return existing + 1 <= data.getType().max_equipped;
         } catch (Exception e) {
@@ -80,12 +100,13 @@ public class RelicSlotUtil {
     }
 
     /**
-     * Consumes a use from every relic in the range that actually applies (within its type's cap, see
-     * {@link RelicItemData#filterEquippable}) - removing the ones that run out - and returns the summed
-     * stats. Relics past the cap are left untouched since their stats were never applied.
+     * Consumes a use from every relic of the required type in the range that actually applies (within the
+     * type's cap, see {@link RelicItemData#filterEquippable}) - removing the ones that run out - and
+     * returns the summed stats. Relics past the cap, and relics of another type, are left untouched since
+     * their stats were never applied.
      */
-    public static RelicStatsContainer consumeAndCalculate(Container inv, int from, int count) {
-        var all = loadAll(inv, from, count);
+    public static RelicStatsContainer consumeAndCalculate(Container inv, int from, int count, String requiredType) {
+        var all = loadAll(inv, from, count, requiredType);
         List<RelicItemData> valid = RelicItemData.filterEquippable(new ArrayList<>(all.values()));
 
         for (var en : all.entrySet()) {

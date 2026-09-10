@@ -57,9 +57,10 @@ public class RelicGenerator {
             data.affixes.add(new RelicAffixData(affix.GUID(), perc));
         }
 
-        // exactly one implicit per relic, regardless of rarity. An implicit with an empty relic_type
-        // is shared across every relic type - that's how the league content guarantees work, since a
-        // content is owned by whichever mod registered it, not by a relic type.
+        // exactly one implicit per relic, regardless of rarity, from the implicits bound to this type
+        // (an empty relic_type still means "any type"). The league content guarantees are all bound to
+        // the dungeon type since only dungeon relics enter the map device, so harvest and obelisk
+        // relics roll no implicit.
         var implicitPool = LibDatabase.RelicAffixes().getFilterWrapped(x -> {
             if (!x.implicit) {
                 return false;

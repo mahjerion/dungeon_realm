@@ -23,6 +23,9 @@ public class RelicItemData {
 
     public String rar = "common";
 
+    // the main mod's retired relic type, still in the NBT of old relics - see DungeonItemNbt.RELIC
+    public static final String LEGACY_MNS_TYPE = "mmorpg";
+
     public String type = DungeonMain.MODID;
 
     // uses remaining before the relic is consumed. Defaults to 1 so relics saved before this field
