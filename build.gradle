@@ -37,10 +37,16 @@ apply from: 'https://raw.githubusercontent.com/RobertSkalko/ModResources/refs/he
 
 publishMods {
 
+    // Overrides the remote publishing.gradle: trim the token files so a stray newline
+    // can't break the upload, and allow -PdryRun to test without publishing.
+    dryRun = providers.gradleProperty("dryRun").isPresent()
+
     curseforge {
+        accessToken = file("key.properties").exists() ? file("key.properties").text.trim() : ""
         requires { slug = "library-of-exile" }
     }
     modrinth {
+        accessToken = file("modrinth_key.properties").exists() ? file("modrinth_key.properties").text.trim() : ""
         requires { slug = "library-of-exile" }
     }
 }
